@@ -13,7 +13,8 @@ from starlette.concurrency import run_in_threadpool
 
 from . import config
 from .documents import DocumentError, DocumentStore, extract_document
-from .llm import AllBackendsFailed
+from .llm import AllBackendsFailed, LocalEvidenceBackend
+from .llm import LLMRouter
 from .pipeline import LeakDetected, PolicyBlocked, build_default_gateway, build_default_router
 from .policy import POLICIES
 
@@ -166,17 +167,18 @@ def analyze_document(body: DocumentAnalyzeIn, authorization: Optional[str] = Hea
     try:
         if blocked:
             raise HTTPException(403, {"error": "blocked_by_policy", "labels": blocked})
+        original_entities = [entity for entity in entities if entity.pass_no == 1]
         return {
             "document_id": document.document_id,
             "sanitized_text": sanitized,
             "detection_engine": gateway.detector.engine,
             "timings": timings,
-            "entity_count": len(entities),
+            "entity_count": len(original_entities),
             "entities": [
                 {"label": entity.label, "value": entity.text, "placeholder": entity.placeholder,
                  "start": entity.start, "end": entity.end, "score": round(entity.score, 3),
                  "action": entity.action, "source": entity.source, "pass": entity.pass_no}
-                for entity in entities
+                for entity in original_entities
             ],
         }
     finally:
@@ -203,6 +205,54 @@ def process_document(body: DocumentProcessIn, authorization: Optional[str] = Hea
     except DocumentError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
     try:
+        router = _router_for(body.provider)
+        indexed_answer = document.search_index.lookup_bank_account(
+            document.text, body.instructions or "",
+        )
+        if indexed_answer.handled:
+            if indexed_answer.status == "found":
+                entities, _, vault, blocked, _ = gateway.sanitize(document.text, body.purpose)
+                try:
+                    account_entity = next(
+                        (
+                            entity for entity in entities
+                            if entity.label == "BANK_ACCOUNT"
+                            and entity.start == indexed_answer.start
+                            and entity.end == indexed_answer.end
+                            and entity.text == indexed_answer.account_number
+                        ),
+                        None,
+                    )
+                    if blocked or account_entity is None or account_entity.action != "mask":
+                        answer = "A matching account was found, but it cannot be safely restored under this purpose policy."
+                    else:
+                        answer = f"Bank account number: {account_entity.placeholder}."
+                finally:
+                    vault.wipe()
+            elif indexed_answer.status == "owner_required":
+                answer = "Include the account holder's full name so the local index can identify the right record."
+            elif indexed_answer.status == "ambiguous":
+                answer = "More than one bank account matches this person. Refine the question to identify the intended account."
+            else:
+                answer = "No matching bank account number was found for that person in this document."
+            router = LLMRouter([LocalEvidenceBackend(answer)])
+        elif body.task == "extract" and body.instructions:
+            _, sanitized, vault, blocked, _ = gateway.sanitize(document.text, body.purpose)
+            try:
+                if not blocked:
+                    selected_lines = document.search_index.retrieve_lines(
+                        document.text, body.instructions, limit=3,
+                    )
+                    sanitized_lines = sanitized.splitlines()
+                    answer_lines = [
+                        " ".join(sanitized_lines[line_number].split())[:240]
+                        for line_number in selected_lines
+                        if line_number < len(sanitized_lines)
+                    ]
+                    answer = "\n".join(answer_lines) or "No relevant information was found in the document."
+                    router = LLMRouter([LocalEvidenceBackend(answer)])
+            finally:
+                vault.wipe()
         r = gateway.process(
             document.text,
             task=body.task,
@@ -210,7 +260,7 @@ def process_document(body: DocumentProcessIn, authorization: Optional[str] = Hea
             doc_type=f"upload:{document.document_id}",
             instructions=body.instructions,
             document_id=document.document_id,
-            router=_router_for(body.provider),
+            router=router,
         )
     except PolicyBlocked as exc:
         documents.set_status(document.document_id, token, "blocked")

@@ -58,8 +58,34 @@ class Detection(unittest.TestCase):
     def test_credit_card_bank_account_ip_and_dob(self):
         text = ("Card number: 4111 1111 1111 1111. Bank account no: 123456789012. IFSC: SBIN0001234. "
                 "IP address: 203.0.113.8. DOB: 01/02/1990.")
-        labels = {entity.label for entity in DET.detect(text)}
+        entities = DET.detect(text)
+        labels = {entity.label for entity in entities}
         self.assertTrue({"CREDIT_CARD", "BANK_ACCOUNT", "IP_ADDRESS", "DATE_OF_BIRTH"} <= labels)
+        self.assertIn("IFSC", labels)
+        self.assertNotIn("BANK_ACCOUNT", [
+            entity.label for entity in entities if entity.text == "SBIN0001234"
+        ])
+
+    def test_document_headings_and_report_dates_are_not_pii(self):
+        text = (
+            "RETAIL BANKING & CARD OPERATIONS — CUSTOMER CASE DOSSIER\n"
+            "Customer Support & Financial Profile Report\n"
+            "Report Date: 12 November 2026\n"
+            "2.1 Narrative KYC & Address Verification Summary\n"
+            "CUSTOMER SUPPORT PROCESSING PROMPT\n"
+            "Date of Birth: 14 February 2002\n"
+            "Customer: Aarav Mehta\n"
+        )
+        entities = DET.detect(text)
+        names = [entity.text for entity in entities if entity.label == "PERSON"]
+        dates = [entity.text for entity in entities if entity.label == "DATE_OF_BIRTH"]
+        addresses = [entity.text for entity in entities if entity.label == "ADDRESS"]
+        self.assertNotIn("CASE DOSSIER", names)
+        self.assertNotIn("Support", names)
+        self.assertNotIn("Profile Report", names)
+        self.assertIn("Aarav Mehta", names)
+        self.assertEqual(dates, ["14 February 2002"])
+        self.assertEqual(addresses, [])
 
 
 class Masking(unittest.TestCase):

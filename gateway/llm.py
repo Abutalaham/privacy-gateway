@@ -23,13 +23,19 @@ SYSTEM_PROMPT = ("You process documents in which personal data was replaced by p
                  "alter placeholders and never try to infer the real values.")
 TASK_PROMPTS = {
     "summarize": "Summarize the following document in 4-6 sentences.",
-    "extract": ("Extract the key facts from the following document as compact JSON with keys: "
-                "document_type, parties, identifiers, amounts, dates, issue_or_request."),
+    "extract": ("Answer the user's question using only relevant facts from the document. "
+                "Return no more than three concise lines. Do not copy or summarize unrelated sections. "
+                "If the answer is not present, say so briefly."),
 }
 
 
 def build_prompt(sanitized: str, task: str, instructions: Optional[str]) -> str:
     head = instructions or TASK_PROMPTS.get(task, TASK_PROMPTS["summarize"])
+    if task == "extract":
+        head = (
+            f"{head}\n\nExtraction rules: answer only the specific question, use at most three concise lines, "
+            "and do not reproduce the document or unrelated key points."
+        )
     return f"{head}\n\n--- DOCUMENT START ---\n{sanitized}\n--- DOCUMENT END ---"
 
 
@@ -152,6 +158,37 @@ class LocalExtractiveBackend(LLMBackend):
         phs = list(dict.fromkeys(re.findall(r"<[A-Z_]+_\d+>", doc)))
         return "Summary (local fallback model): " + " ".join(sentences) + \
                ("\nEntities referenced: " + ", ".join(phs) if phs else "")
+
+
+class LocalEvidenceBackend(LLMBackend):
+    """Return a locally indexed, policy-masked field answer without calling an LLM."""
+
+    name, model, external = "local-evidence-index", "hmac-sha256-line-index-v1", False
+
+    def __init__(self, answer: str):
+        self.answer = answer
+
+    def build_request(self, sanitized, task, instructions):
+        body = {
+            "operation": "indexed_local_lookup",
+            "task": task,
+            "document": sanitized,
+            "instructions": instructions,
+        }
+        return OutboundRequest(
+            self.name,
+            self.model,
+            "inprocess://local-evidence-index",
+            {},
+            json.dumps(body, ensure_ascii=False).encode(),
+            False,
+        )
+
+    def parse(self, data):
+        return data
+
+    def send(self, req):
+        return self.answer
 
 
 class MockBackend(LLMBackend):

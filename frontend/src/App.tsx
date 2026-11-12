@@ -265,6 +265,10 @@ function App() {
   const uploadRef = useRef<HTMLInputElement>(null);
 
   const activePolicy = policies[purpose] ?? fallbackPolicies[purpose] ?? policies.default;
+  const reviewEntities = useMemo(
+    () => documentAnalysis?.entities.filter((entity) => entity.pass === 1) ?? [],
+    [documentAnalysis],
+  );
   const spans = useMemo(() => result ? getSpans(text, result.entities) : [], [result, text]);
   const originalValues = useMemo(() => [...new Set(spans.map((span) => span.value))], [spans]);
   const outboundLeaks = useMemo(() => result
@@ -415,13 +419,13 @@ function App() {
         text, task, purpose, instructions: instructions || undefined, provider: provider || undefined,
         ...(selectedSample && sampleId !== "custom" ? { doc_type: selectedSample.docType } : {}),
       };
-      const next = demoMode
-        ? makeMockResult(text, task, purpose, body.doc_type)
-        : uploadedDocument
-          ? await api.processDocument({
-            document_id: uploadedDocument.document_id, task, purpose,
-            instructions: instructions || undefined, provider: provider || undefined,
-          }, uploadedDocument.access_token)
+      const next = uploadedDocument
+        ? await api.processDocument({
+          document_id: uploadedDocument.document_id, task, purpose,
+          instructions: instructions || undefined, provider: provider || undefined,
+        }, uploadedDocument.access_token)
+        : demoMode
+          ? makeMockResult(text, task, purpose, body.doc_type)
           : await api.process(body);
       setStage(3);
       setResult(next);
@@ -526,7 +530,7 @@ function App() {
             <div className="hero-float-card hero-float-top"><span className="float-icon"><LockKeyholeOpen size={14} /></span><span><b>Private by design</b><small>Values restored locally</small></span></div>
             <div className="hero-float-card hero-float-bottom"><span className="float-pulse" /><span><b>Leak gate active</b><small>Outbound payload verified</small></span></div>
             <label className={`demo-switch ${demoMode ? "demo-active" : ""}`}>
-              <span className="switch-copy"><Sparkles size={16} /><span><b>Demo mode</b><small>Runs offline with mock data</small></span></span>
+              <span className="switch-copy"><Sparkles size={16} /><span><b>Demo mode</b><small>Offline mock for sample/text input</small></span></span>
               <input type="checkbox" checked={demoMode} onChange={(event) => setDemoMode(event.target.checked)} aria-label="Enable Demo mode" />
               <span className="switch-track"><span /></span>
             </label>
@@ -569,7 +573,7 @@ function App() {
 
         {documentAnalysis && !result && <section className="document-review">
           <div className="review-heading"><div><span className="control-kicker">PRIVACY ANALYSIS</span><h2>Review extracted and sanitized text</h2></div>
-            <div className="review-actions"><span className="entity-count">{documentAnalysis.entity_count} entities · {documentAnalysis.detection_engine}</span>
+            <div className="review-actions"><span className="entity-count">{reviewEntities.length} entities · {documentAnalysis.detection_engine}</span>
               <button className="outline-button" onClick={() => downloadText(documentAnalysis.sanitized_text, "sanitized-document.txt")}><Download size={13} /> Download sanitized</button>
             </div>
           </div>
@@ -579,7 +583,7 @@ function App() {
           </div>
           <div className="entity-table-wrap review-entities"><table className="entity-table">
             <thead><tr><th>CATEGORY</th><th>ORIGINAL VALUE</th><th>PLACEHOLDER</th><th>CONFIDENCE</th><th>POSITION</th></tr></thead>
-            <tbody>{documentAnalysis.entities.map((entity, index) => <tr key={`${entity.placeholder}-${index}`}>
+            <tbody>{reviewEntities.map((entity, index) => <tr key={`${entity.placeholder}-${entity.start}-${index}`}>
               <td><span className="entity-type">{entity.label}</span></td><td>{entity.value}</td>
               <td><span className={`mini-token ${entityClass(entity.label)}`}>{entity.placeholder}</span></td>
               <td>{Math.round(entity.score * 100)}%</td>
@@ -630,7 +634,7 @@ function App() {
             </div>
             <label className="instruction-field">
               <span className="field-label">QUESTION OR INSTRUCTION</span>
-              <textarea value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={2} placeholder="Ask a question about the document or leave blank for the selected task." />
+              <textarea value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={2} placeholder={task === "extract" ? "Ask a specific question; Extract returns up to 3 relevant lines." : "Ask a question about the document or leave blank for the selected task."} />
             </label>
           </div>
           <div className={`pipeline-status ${busy ? "pipeline-running" : ""} ${result ? "pipeline-complete" : ""} ${failure ? "pipeline-stopped" : ""}`} role="status" aria-live="polite">

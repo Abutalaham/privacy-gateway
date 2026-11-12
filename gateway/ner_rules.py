@@ -24,11 +24,15 @@ Place Application Form Record Proprietor Director Owner Guarantor Father Mother 
 Later Then Also After Before Today Yesterday Tomorrow Hence However Thus Finally Meanwhile Call Reach Send Check See Refer Attn Kindly
 UTR Incident Relation Limited Ltd Pvt Private Urgent Issue Problem Update Status Help Need Unable Not
 Summarize Summary Explain Tell Analyze Analyse Write Extract Describe Provide Find What Who Why How""".split()}
+STOP.update(w.lower() for w in """Case Dossier Support Financial Profile Report Reference Master Core Privacy Gateway
+Demo Test Synthetic Data Person Persons Names Placeholder Consistency Processing Prompt Target Karnataka Holder Sole
+Signatory Verification Details Web Portal Client Repeated Sections""".split())
 
 _TOK = r"(?:[A-Z][a-z]{1,20}|[A-Z]{2,20}|[A-Z]\.)"
-_NAME = rf"({_TOK}(?:[ \t]+{_TOK}){{0,3}})"
-_STRONG = (r"(?:my\s+name\s+is|name\s+is|name\s*[:=\-–]|full\s+name|applicant(?:'s)?(?:\s+name)?|co-?applicant|"
-           r"customer(?:'s)?(?:\s+name)?|claimant(?:\s*\([^)\n]{0,30}\))?|policy\s*holder|borrower|nominee|beneficiary|"
+_NAME = rf"({_TOK}(?:(?:[ \t]+|\n){_TOK}){{0,3}})"
+_STRONG = (r"(?:my\s+name\s+is|name\s+is|name\s*[:=\-–]|full(?:\s+legal)?\s+name|applicant(?:'s)?(?:\s+name)?|co-?applicant|"
+           r"customer(?:'s)?[ \t]+name|customer(?=[ \t]*[:=])|claimant(?:\s*\([^)\n]{0,30}\))?|"
+           r"policy\s*holder|borrower|nominee|beneficiary|"
            r"account\s+holder|proprietor|director|owner|guarantor|authori[sz]ed\s+signatory|father'?s?\s+name|"
            r"mother'?s?\s+name|spouse(?:'s)?\s+name|contact\s+person|mera\s+naam|mera\s+name|meri\s+naam|naam|"
            r"nanna\s+hesaru|hesaru|s/o|d/o|w/o|c/o|mr\.?|mrs\.?|ms\.?|shri|smt\.?|sri|dr\.?|prof\.?)")
@@ -37,7 +41,7 @@ _WEAK = r"(?:i\s+am|i\s*,|dear|regards,?|thanks,?|sincerely,?|yours\s+truly,?|ve
 STRONG_RE = re.compile(rf"\b(?i:{_STRONG})[ \t]*[:=\-–]?\s*{_NAME}")
 WEAK_RE = re.compile(rf"\b(?i:{_WEAK})[ \t]*[:=\-–]?\s*{_NAME}")
 SUFFIX_RE = re.compile(rf"\b({_TOK}(?:[ \t]+{_TOK})?)[ \t]+(?i:ji|bhai|sahab|saheb|garu|avare)\b")
-GAZ_RE = re.compile(r"\b[A-Z][a-z]{1,20}(?:[ \t]+[A-Z][a-z]{1,20}){0,3}")
+GAZ_RE = re.compile(r"\b[A-Z][a-z]{1,20}(?:(?:[ \t]+|\n)[A-Z][a-z]{1,20}){0,3}")
 
 
 def _trim(text: str, start: int, end: int):
@@ -98,5 +102,10 @@ def find_addresses(text: str) -> List[Span]:
     out: List[Span] = []
     for rx, score in ((ADDR_PIN_CUE, 0.9), (ADDR_EOL_CUE, 0.75), (ADDR_CHAIN, 0.6)):
         for m in rx.finditer(text):
+            if rx is ADDR_EOL_CUE:
+                prefix = text[max(0, m.start(1) - 40):m.start(1)]
+                value = m.group(1)
+                if not re.search(r"\d|[,#]", value) and not re.search(r"[:=]\s*$", prefix):
+                    continue
             out.append(("ADDRESS", m.start(1), m.end(1), score))
     return out

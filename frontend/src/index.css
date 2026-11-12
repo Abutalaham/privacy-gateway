@@ -152,9 +152,13 @@ h1 span { color: #21946b; }
 .entity-address { background: #dbeafe; --entity-ink: #2e5e9d; }
 .entity-aadhaar { background: #ffe0df; --entity-ink: #a64540; }
 .entity-pan { background: #fce4f0; --entity-ink: #9c4c74; }
+.entity-ifsc { background: #e7e9fd; --entity-ink: #4c56a7; }
 .entity-gstin { background: #ede5ff; --entity-ink: #7051a2; }
 .entity-voter { background: #d9f4e5; --entity-ink: #307653; }
 .entity-passport { background: #ffead8; --entity-ink: #995c2e; }
+.entity-date { background: #ffead8; --entity-ink: #995c2e; }
+.entity-credit-card { background: #e3f3ea; --entity-ink: #34744f; }
+.entity-bank-account { background: #e8e7fb; --entity-ink: #57528e; }
 .entity-phone { background: #edf0f3; --entity-ink: #596a78; }
 .entity-email { background: #d7f5f8; --entity-ink: #24727d; }
 .entity-default { background: #edf0f3; --entity-ink: #596a78; }

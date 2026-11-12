@@ -179,11 +179,13 @@ class Detector:
             if label == "PERSON" and "SpacyRecognizer" in src:
                 tokens = list(re.finditer(r"\b[\w'-]+\b", span))
                 meaningful = [token for token in tokens if token.group().lower() not in STOP]
-                if not meaningful:
+                if len(meaningful) < 2:
                     continue
                 s += meaningful[0].start()
                 e = s + meaningful[-1].end() - meaningful[0].start()
                 span = text[s:e]
+            if label == "DATE_OF_BIRTH" and not _context_hit(text, s, label):
+                continue
             if label in ID_LABELS and score < 0.9 and _negated(text, s, label):
                 continue                                       # e.g. "UTR 402312345678", "Policy POL1234567"
             cands.append(Entity(label, s, e, score, span, src))

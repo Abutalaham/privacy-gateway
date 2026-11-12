@@ -10,8 +10,9 @@ import httpx
 from docx import Document
 
 from gateway.audit import AuditLog, LEGACY_COLUMNS, hash_record
-from gateway.detector import Detector
-from gateway.documents import DocumentError, DocumentStore, extract_document
+from gateway.detector import Detector, Entity
+from gateway.documents import DocumentError, DocumentStore, HashedLineIndex, extract_document
+from gateway.masking import Vault
 from gateway.pipeline import build_default_gateway
 
 
@@ -61,6 +62,48 @@ class DocumentExtractionTests(unittest.TestCase):
         with patch("gateway.config.MAX_UPLOAD_BYTES", 4):
             with self.assertRaisesRegex(DocumentError, "maximum"):
                 extract_document("large.txt", b"12345")
+
+    def test_hashed_index_matches_owner_to_account_field(self):
+        text = (
+            "Primary Account Holder Aarav Mehta Sole Signatory\n"
+            "Bank Account Number 000123456789 Retail Savings Active\n"
+            "Account Holder Priya Naik\n"
+            "Bank Account Number 987654321012 Retail Savings Active\n"
+        )
+        index = HashedLineIndex(text)
+        try:
+            found = index.lookup_bank_account(text, "Give me Bank Account Number of Aarav Mehta")
+            self.assertTrue(found.handled)
+            self.assertEqual(found.status, "found")
+            self.assertEqual(found.account_number, "000123456789")
+            self.assertEqual(text[found.start:found.end], "000123456789")
+
+            missing = index.lookup_bank_account(text, "Give me Bank Account Number of Rohan Das")
+            self.assertEqual(missing.status, "not_found")
+
+            unsupported = index.lookup_bank_account(text, "Summarize this document")
+            self.assertFalse(unsupported.handled)
+        finally:
+            index.clear()
+
+    def test_hashed_index_retrieves_only_question_relevant_lines(self):
+        text = (
+            "Full name Aarav Mehta\n"
+            "Occupation Software Developer\n"
+            "Email address aarav@example.com\n"
+            "Mobile number +91 90000 12345\n"
+            "Date of birth 14 February 1998\n"
+        )
+        index = HashedLineIndex(text)
+        try:
+            selected = index.retrieve_lines(text, "What is the occupation of Aarav Mehta?")
+            self.assertLessEqual(len(selected), 3)
+            self.assertIn("Occupation Software Developer", [text.splitlines()[line] for line in selected])
+            self.assertNotIn("Email address aarav@example.com", [text.splitlines()[line] for line in selected])
+            phone_lines = index.retrieve_lines(text, "What is Aarav Mehta's phone number?")
+            self.assertIn("Mobile number +91 90000 12345", [text.splitlines()[line] for line in phone_lines])
+        finally:
+            index.clear()
 
     def test_document_access_token_is_scoped_and_expires(self):
         store = DocumentStore(ttl_seconds=60, max_documents=2)
@@ -116,6 +159,155 @@ class AuditUpgradeTests(unittest.TestCase):
 
 
 class DocumentApiTests(unittest.TestCase):
+    def test_analysis_table_only_contains_original_text_offsets(self):
+        async def run():
+            from gateway import api as api_module
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                store = DocumentStore()
+                self.addCleanup(store.close)
+                original_text = "user@example.com"
+                original = Entity(
+                    "EMAIL", 0, len(original_text), 0.99, original_text,
+                    source="EmailRecognizer", placeholder="<EMAIL_1>", action="mask", pass_no=1,
+                )
+                recheck = Entity(
+                    "PERSON", 1, 5, 0.8, "fake", source="recheck",
+                    placeholder="<PERSON_1>", action="mask", pass_no=2,
+                )
+                fake_gateway = type("FakeGateway", (), {
+                    "detector": type("FakeDetector", (), {"engine": "test"})(),
+                    "sanitize": lambda self, text, purpose: (
+                        [original, recheck], "<EMAIL_1>", Vault(), [], {},
+                    ),
+                })()
+                transport = httpx.ASGITransport(app=api_module.app)
+                with patch.object(api_module, "gateway", fake_gateway), patch.object(api_module, "documents", store):
+                    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                        uploaded = await client.post(
+                            "/v1/documents/upload",
+                            files={"file": ("profile.txt", original_text.encode(), "text/plain")},
+                        )
+                        self.assertEqual(uploaded.status_code, 200, uploaded.text)
+                        data = uploaded.json()
+                        response = await client.post(
+                            "/v1/documents/analyze",
+                            headers={"Authorization": f"Bearer {data['access_token']}"},
+                            json={"document_id": data["document_id"]},
+                        )
+                        self.assertEqual(response.status_code, 200, response.text)
+                        result = response.json()
+                        self.assertEqual(result["entity_count"], 1)
+                        self.assertEqual(len(result["entities"]), 1)
+                        entity = result["entities"][0]
+                        self.assertEqual(entity["pass"], 1)
+                        self.assertEqual(original_text[entity["start"]:entity["end"]], entity["value"])
+
+        asyncio.run(run())
+
+    def test_extract_question_returns_only_relevant_lines(self):
+        async def run():
+            from gateway import api as api_module
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                test_gateway = build_default_gateway(
+                    provider="mock",
+                    fallback="none",
+                    db_path=os.path.join(temp_dir, "audit.db"),
+                    detector=Detector(use_presidio=False),
+                )
+                store = DocumentStore()
+                self.addCleanup(store.close)
+                transport = httpx.ASGITransport(app=api_module.app)
+                with patch.object(api_module, "gateway", test_gateway), patch.object(api_module, "documents", store):
+                    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                        text = (
+                            "Full name Aarav Mehta\n"
+                            "Occupation Software Developer\n"
+                            "Email address aarav@example.com\n"
+                            "Date of birth 14 February 1998\n"
+                            "Unrelated privacy-policy details fill this section.\n"
+                        )
+                        uploaded = await client.post(
+                            "/v1/documents/upload",
+                            files={"file": ("profile.txt", text.encode(), "text/plain")},
+                        )
+                        self.assertEqual(uploaded.status_code, 200, uploaded.text)
+                        data = uploaded.json()
+                        headers = {"Authorization": f"Bearer {data['access_token']}"}
+
+                        processed = await client.post(
+                            "/v1/documents/process",
+                            headers=headers,
+                            json={
+                                "document_id": data["document_id"],
+                                "task": "extract",
+                                "instructions": "What is the occupation of Aarav Mehta?",
+                                "provider": "mock",
+                            },
+                        )
+                        self.assertEqual(processed.status_code, 200, processed.text)
+                        result = processed.json()
+                        self.assertIn("Occupation Software Developer", result["final_response"])
+                        self.assertNotIn("aarav@example.com", result["final_response"])
+                        self.assertNotIn("Unrelated privacy-policy details", result["final_response"])
+                        self.assertLessEqual(len(result["final_response"].splitlines()), 3)
+                        self.assertEqual(result["provider"], "local-evidence-index")
+                        self.assertFalse(result["attempts"][0]["external"])
+
+        asyncio.run(run())
+
+    def test_account_question_uses_local_index_and_restores_masked_value(self):
+        async def run():
+            from gateway import api as api_module
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                test_gateway = build_default_gateway(
+                    provider="mock",
+                    fallback="none",
+                    mock_mode="rotate",
+                    db_path=os.path.join(temp_dir, "audit.db"),
+                    detector=Detector(use_presidio=False),
+                )
+                store = DocumentStore()
+                self.addCleanup(store.close)
+                transport = httpx.ASGITransport(app=api_module.app)
+                with patch.object(api_module, "gateway", test_gateway), patch.object(api_module, "documents", store):
+                    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                        text = (
+                            "Primary Account Holder Aarav Mehta Sole Signatory\n"
+                            "Bank Account Number 000123456789 Retail Savings Active\n"
+                        )
+                        uploaded = await client.post(
+                            "/v1/documents/upload",
+                            files={"file": ("profile.txt", text.encode(), "text/plain")},
+                        )
+                        self.assertEqual(uploaded.status_code, 200, uploaded.text)
+                        data = uploaded.json()
+                        headers = {"Authorization": f"Bearer {data['access_token']}"}
+
+                        processed = await client.post(
+                            "/v1/documents/process",
+                            headers=headers,
+                            json={
+                                "document_id": data["document_id"],
+                                "instructions": "Give me Bank Account Number of Aarav Mehta",
+                                "provider": "mock",
+                            },
+                        )
+                        self.assertEqual(processed.status_code, 200, processed.text)
+                        result = processed.json()
+                        self.assertEqual(result["final_response"], "Bank account number: 000123456789.")
+                        self.assertIn("<BANK_ACCOUNT_1>", result["llm_raw_response"])
+                        self.assertNotIn("000123456789", result["outbound_payload"])
+                        self.assertNotIn("Aarav Mehta", result["outbound_payload"])
+                        self.assertEqual(result["provider"], "local-evidence-index")
+                        self.assertFalse(result["attempts"][0]["external"])
+                        self.assertNotIn("000123456789", str(test_gateway.audit.recent(1)))
+                        self.assertTrue(test_gateway.audit.verify_chain())
+
+        asyncio.run(run())
+
     def test_upload_review_process_and_audit(self):
         async def run():
             from gateway import api as api_module

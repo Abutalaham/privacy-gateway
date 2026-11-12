@@ -107,7 +107,7 @@ SPECS: List[IdSpec] = [
     IdSpec("EMAIL_ADDRESS", "EMAIL",
            [("email", r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b", 0.9)],
            ["email", "e-mail", "mail"], None),
-    IdSpec("IN_IFSC", "BANK_ACCOUNT",
+    IdSpec("IN_IFSC", "IFSC",
            [("ifsc", r"\b[A-Z]{4}0[A-Z0-9]{6}\b", 0.9)],
            ["ifsc", "ifsc code", "bank"], None),
     IdSpec("CREDIT_CARD", "CREDIT_CARD",
@@ -127,7 +127,7 @@ ENTITY_TO_LABEL.update({
 ENTITY_TO_LABEL.update({s.label: s.label for s in SPECS})
 LABEL_CONTEXT = {s.label: s.context for s in SPECS}
 ALL_LABELS = ["PERSON", "ADDRESS", "AADHAAR", "PAN", "GSTIN", "VOTER_ID", "PASSPORT", "PHONE", "EMAIL",
-              "CREDIT_CARD", "BANK_ACCOUNT", "IP_ADDRESS", "DATE_OF_BIRTH"]
+              "CREDIT_CARD", "BANK_ACCOUNT", "IFSC", "IP_ADDRESS", "DATE_OF_BIRTH"]
 
 # Words that, just before a number/code, say it is NOT an identity number (txn ids, policy numbers ...)
 NEGATIVE_CONTEXT = ["account", "a/c", "acct", "ref", "txn", "transaction", "utr", "order", "invoice",

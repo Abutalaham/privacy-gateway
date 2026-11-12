@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import io
+import math
+import re
 import secrets
 import threading
 import time
@@ -14,11 +17,172 @@ from typing import Dict, Optional, Tuple
 
 from . import config
 
+_WORD = re.compile(r"[a-z0-9]+")
+_BANK_ACCOUNT_QUESTION = re.compile(
+    r"\b(?:bank\s+)?account(?:\s+(?:number|no\.?))?\b", re.IGNORECASE
+)
+_OWNER_RELATION = re.compile(
+    r"\b(?:of|for|belonging\s+to|held\s+by|owned\s+by)\s+(.+)$", re.IGNORECASE
+)
+_ACCOUNT_FIELD = re.compile(
+    r"\b(?:bank\s+account|account)\s+(?:number|no\.?)\s*[:#-]?\s*(\d{9,18})\b",
+    re.IGNORECASE,
+)
+_QUESTION_STOP_WORDS = {
+    "a", "an", "the", "customer", "client", "please", "in", "from", "whose",
+    "is", "was", "me", "my", "of", "for", "number", "account", "bank",
+}
+_RETRIEVAL_STOP_WORDS = _QUESTION_STOP_WORDS | {
+    "give", "show", "tell", "find", "get", "what", "which", "who", "when",
+    "where", "why", "how", "does", "do", "did", "can", "could", "would",
+    "should", "and", "or", "to", "with", "about", "document", "information",
+    "details", "please", "his", "her", "their", "this", "that", "me",
+}
+_FIELD_QUERY_GROUPS = (
+    {"occupation", "job", "role", "position"},
+    {"email", "mail"},
+    {"phone", "mobile", "telephone", "contact"},
+    {"address", "residential", "residence", "location"},
+    {"birth", "born", "dob", "date", "age"},
+    {"name"},
+    {"education", "qualification", "institution", "degree", "graduation"},
+    {"company", "employer"},
+    {"identity", "pan", "aadhaar", "passport"},
+)
+
 
 class DocumentError(ValueError):
     def __init__(self, message: str, status_code: int = 422):
         super().__init__(message)
         self.status_code = status_code
+
+
+@dataclass(frozen=True)
+class EvidenceLookup:
+    handled: bool
+    status: str
+    owner: Optional[str] = None
+    account_number: Optional[str] = None
+    start: Optional[int] = None
+    end: Optional[int] = None
+
+
+class HashedLineIndex:
+    """Short-lived per-document inverted index keyed by HMACed normalized terms."""
+
+    def __init__(self, text: str):
+        self._key = bytearray(secrets.token_bytes(32))
+        self._postings: Dict[bytes, set[int]] = {}
+        self._line_offsets = []
+        offset = 0
+        lines = text.splitlines()
+        raw_lines = text.splitlines(keepends=True)
+        for line_number, raw_line in enumerate(raw_lines):
+            line = raw_line.rstrip("\r\n")
+            self._line_offsets.append(offset)
+            for term in set(_WORD.findall(line.lower())):
+                self._postings.setdefault(self._digest(term), set()).add(line_number)
+            offset += len(raw_line)
+        self.line_count = len(lines)
+
+    def _digest(self, term: str) -> bytes:
+        return hmac.new(bytes(self._key), term.encode("utf-8"), hashlib.sha256).digest()
+
+    def clear(self) -> None:
+        self._postings.clear()
+        self._line_offsets.clear()
+        self._key[:] = b"\x00" * len(self._key)
+        self.line_count = 0
+
+    def _matching_lines(self, terms: list[str]) -> set[int]:
+        matches: set[int] = set()
+        for term in terms:
+            matches.update(self._postings.get(self._digest(term), ()))
+        return matches
+
+    def _line_contains_all(self, line_number: int, terms: list[str]) -> bool:
+        return all(line_number in self._postings.get(self._digest(term), ()) for term in terms)
+
+    def retrieve_lines(self, text: str, question: str, limit: int = 3) -> list[int]:
+        terms = list(dict.fromkeys(
+            word for word in _WORD.findall(question.lower())
+            if len(word) > 1 and word not in _RETRIEVAL_STOP_WORDS
+        ))
+        if not terms:
+            return []
+        field_terms = set().union(*(
+            group for group in _FIELD_QUERY_GROUPS if any(term in group for term in terms)
+        ))
+        if field_terms:
+            terms = list(dict.fromkeys([term for term in terms if term in field_terms] + list(field_terms)))
+
+        scores: Dict[int, float] = {}
+        for term in terms:
+            postings = self._postings.get(self._digest(term), ())
+            if not postings:
+                continue
+            weight = 1 + math.log((self.line_count + 1) / (len(postings) + 1))
+            for line_number in postings:
+                scores[line_number] = scores.get(line_number, 0.0) + weight
+        if not scores:
+            return []
+
+        ranked = sorted(scores, key=lambda line_number: (-scores[line_number], line_number))
+        best_score = scores[ranked[0]]
+        selected = [line_number for line_number in ranked if scores[line_number] >= best_score * 0.4][:limit]
+        return sorted(selected)
+
+    def lookup_bank_account(self, text: str, question: str) -> EvidenceLookup:
+        if not _BANK_ACCOUNT_QUESTION.search(question):
+            return EvidenceLookup(False, "unsupported")
+
+        relation = _OWNER_RELATION.search(question)
+        owner_terms = []
+        if relation:
+            for word in _WORD.findall(relation.group(1).lower()):
+                if word in _QUESTION_STOP_WORDS:
+                    break
+                owner_terms.append(word)
+                if len(owner_terms) == 4:
+                    break
+        if len(owner_terms) < 2:
+            return EvidenceLookup(True, "owner_required")
+
+        owner = " ".join(word.title() for word in owner_terms)
+        lines = text.splitlines()
+        query_lines = self._matching_lines(["bank", "account", "number", *owner_terms])
+        candidates = []
+        for line_number in sorted(query_lines):
+            if line_number >= len(lines):
+                continue
+            match = _ACCOUNT_FIELD.search(lines[line_number])
+            if not match:
+                continue
+            start = self._line_offsets[line_number] + match.start(1)
+            end = start + len(match.group(1))
+            nearby_owner_lines = [
+                nearby for nearby in range(max(0, line_number - 2), min(len(lines), line_number + 3))
+                if self._line_contains_all(nearby, owner_terms)
+            ]
+            if not nearby_owner_lines:
+                continue
+            distance = min(abs(nearby - line_number) for nearby in nearby_owner_lines)
+            candidates.append((match.group(1), start, end, distance))
+
+        distinct_values = {candidate[0] for candidate in candidates}
+        if not distinct_values:
+            return EvidenceLookup(True, "not_found", owner=owner)
+        if len(distinct_values) != 1:
+            return EvidenceLookup(True, "ambiguous", owner=owner)
+
+        account_number = next(iter(distinct_values))
+        _, start, end, _ = min(
+            (candidate for candidate in candidates if candidate[0] == account_number),
+            key=lambda candidate: candidate[3],
+        )
+        return EvidenceLookup(
+            True, "found", owner=owner, account_number=account_number, start=start, end=end,
+        )
 
 
 @dataclass
@@ -29,6 +193,7 @@ class StoredDocument:
     size_bytes: int
     text: str
     created_at: float
+    search_index: HashedLineIndex
     status: str = "uploaded"
 
 
@@ -134,6 +299,7 @@ class DocumentStore:
         with self._lock:
             for document in self._documents.values():
                 document.text = ""
+                document.search_index.clear()
             self._documents.clear()
 
     @staticmethod
@@ -148,6 +314,7 @@ class DocumentStore:
         ]
         for document_id in expired:
             self._documents[document_id].text = ""
+            self._documents[document_id].search_index.clear()
             del self._documents[document_id]
 
     def create(self, filename: str, size_bytes: int, text: str) -> Tuple[StoredDocument, str]:
@@ -160,6 +327,7 @@ class DocumentStore:
             size_bytes=size_bytes,
             text=text,
             created_at=now,
+            search_index=HashedLineIndex(text),
         )
         with self._lock:
             self._purge_expired(now)

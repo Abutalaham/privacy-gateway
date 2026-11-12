@@ -76,15 +76,16 @@ export const entityColors: Record<string, string> = {
   ADDRESS: "entity-address",
   AADHAAR: "entity-aadhaar",
   PAN: "entity-pan",
+  IFSC: "entity-ifsc",
   GSTIN: "entity-gstin",
   VOTER_ID: "entity-voter",
   PASSPORT: "entity-passport",
   PHONE: "entity-phone",
   EMAIL: "entity-email",
-  CREDIT_CARD: "entity-aadhaar",
-  BANK_ACCOUNT: "entity-phone",
+  CREDIT_CARD: "entity-credit-card",
+  BANK_ACCOUNT: "entity-bank-account",
   IP_ADDRESS: "entity-address",
-  DATE_OF_BIRTH: "entity-passport",
+  DATE_OF_BIRTH: "entity-date",
 };
 
 export const metricsFallback = {

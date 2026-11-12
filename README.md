@@ -53,6 +53,11 @@ is created only within the existing process call, never persisted or returned;
 the final authorized response is restored locally. Audit rows store an opaque
 document ID, entity counts, and the sanitized outbound request, not the uploaded
 document or original values.
+The analysis table shows only first-pass detections and original-text offsets;
+sanitized-text re-scan detections remain internal to the masking safety checks.
+For uploaded documents, the **Extract** task with a question uses a local indexed
+evidence path and returns at most three relevant source lines instead of the full
+document.
 
 Endpoints: `POST /v1/documents/upload`, `POST /v1/documents/analyze` (also
 `/sanitize`), `POST /v1/documents/process`, and
