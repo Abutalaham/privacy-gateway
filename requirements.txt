@@ -1,0 +1,10 @@
+presidio-analyzer>=2.2.355
+spacy>=3.7
+fastapi>=0.110
+uvicorn[standard]>=0.29
+httpx>=0.27
+pydantic>=2.6
+python-dotenv>=1.0
+streamlit>=1.35
+# optional, recommended for names/addresses in Indian English + code-mixed text:
+# gliner>=0.2.8

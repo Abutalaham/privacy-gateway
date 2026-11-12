@@ -1,0 +1,179 @@
+{
+ "engine": "builtin-regex",
+ "documents": 50,
+ "gold_entities": 376,
+ "pii_leakage_count": 0,
+ "leakage_by_type": {},
+ "second_pass_catches": 0,
+ "per_type_overlap": {
+  "PERSON": {
+   "precision": 0.993,
+   "recall": 1.0,
+   "f1": 0.996,
+   "tp": 139,
+   "fp": 1,
+   "fn": 0
+  },
+  "ADDRESS": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 50,
+   "fp": 0,
+   "fn": 0
+  },
+  "AADHAAR": {
+   "precision": 0.979,
+   "recall": 1.0,
+   "f1": 0.989,
+   "tp": 47,
+   "fp": 1,
+   "fn": 0
+  },
+  "PAN": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 33,
+   "fp": 0,
+   "fn": 0
+  },
+  "GSTIN": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 5,
+   "fp": 0,
+   "fn": 0
+  },
+  "VOTER_ID": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 9,
+   "fp": 0,
+   "fn": 0
+  },
+  "PASSPORT": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 14,
+   "fp": 0,
+   "fn": 0
+  },
+  "PHONE": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 50,
+   "fp": 0,
+   "fn": 0
+  },
+  "EMAIL": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 29,
+   "fp": 0,
+   "fn": 0
+  }
+ },
+ "per_type_exact": {
+  "PERSON": {
+   "precision": 0.979,
+   "recall": 0.986,
+   "f1": 0.982,
+   "tp": 137,
+   "fp": 3,
+   "fn": 2
+  },
+  "ADDRESS": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 50,
+   "fp": 0,
+   "fn": 0
+  },
+  "AADHAAR": {
+   "precision": 0.979,
+   "recall": 1.0,
+   "f1": 0.989,
+   "tp": 47,
+   "fp": 1,
+   "fn": 0
+  },
+  "PAN": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 33,
+   "fp": 0,
+   "fn": 0
+  },
+  "GSTIN": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 5,
+   "fp": 0,
+   "fn": 0
+  },
+  "VOTER_ID": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 9,
+   "fp": 0,
+   "fn": 0
+  },
+  "PASSPORT": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 14,
+   "fp": 0,
+   "fn": 0
+  },
+  "PHONE": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 50,
+   "fp": 0,
+   "fn": 0
+  },
+  "EMAIL": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 29,
+   "fp": 0,
+   "fn": 0
+  }
+ },
+ "reinsertion": {
+  "accuracy": 1.0,
+  "restored_correctly": 310,
+  "total_checked": 310,
+  "cross_person_replacements": 0,
+  "hallucinated_placeholders_left_untouched": "20/20",
+  "dropped_placeholder_cases_safe": "10/10",
+  "by_llm_behaviour": {
+   "faithful": "72/72",
+   "reorder": "67/67",
+   "paraphrase": "66/66",
+   "drop": "38/38",
+   "hallucinate": "67/67"
+  }
+ },
+ "latency_ms": {
+  "gateway_overhead_mean": 2.82,
+  "gateway_overhead_p50": 2.61,
+  "gateway_overhead_p95": 3.63,
+  "mock_llm_mean": 0.141,
+  "end_to_end_mean": 2.96
+ },
+ "audit_chain_valid": true
+}

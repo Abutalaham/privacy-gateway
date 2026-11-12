@@ -1,0 +1,2608 @@
+[
+ {
+  "id": "DOC001",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN9963334018\nApplicant Name: Priya Naik\nFather's Name: Vijay Nair\nAddress: Flat 24B, Sai Apartments, Madhapur, Hyderabad 500004\nMobile: 9361158878   Email: priya.naik76@yahoo.in\nAadhaar: 6940-7816-1849\nPAN: UGYCN0750X\nBusiness: Sri Venkateshwara Traders  GSTIN: 07HKCFS1654N8ZY\nLoan requested: Rs. 1250000 for two-wheeler purchase over 36 months.\nDeclaration: I, Priya Naik, hereby declare that the details above are true.\nRegards,\nPriya Naik",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 77,
+    "value": "Priya Naik"
+   },
+   {
+    "type": "PERSON",
+    "start": 93,
+    "end": 103,
+    "value": "Vijay Nair"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 113,
+    "end": 165,
+    "value": "Flat 24B, Sai Apartments, Madhapur, Hyderabad 500004"
+   },
+   {
+    "type": "PHONE",
+    "start": 174,
+    "end": 184,
+    "value": "9361158878"
+   },
+   {
+    "type": "EMAIL",
+    "start": 194,
+    "end": 215,
+    "value": "priya.naik76@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 225,
+    "end": 239,
+    "value": "6940-7816-1849"
+   },
+   {
+    "type": "PAN",
+    "start": 245,
+    "end": 255,
+    "value": "UGYCN0750X"
+   },
+   {
+    "type": "GSTIN",
+    "start": 300,
+    "end": 315,
+    "value": "07HKCFS1654N8ZY"
+   },
+   {
+    "type": "PERSON",
+    "start": 401,
+    "end": 411,
+    "value": "Priya Naik"
+   },
+   {
+    "type": "PERSON",
+    "start": 470,
+    "end": 480,
+    "value": "Priya Naik"
+   }
+  ]
+ },
+ {
+  "id": "DOC002",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN4131575764\nApplicant Name: Tanvi Singh\nFather's Name: Harish Acharya\nAddress: #70, 9th Main Road, Vidyanagar, Davangere, 577049\nMobile: 6375204207   Email: tanvi.singh41@yahoo.in\nAadhaar: 984969653287\nPAN: BDEHS6916V\nLoan requested: Rs. 300000 for education over 60 months.\nDeclaration: I, Tanvi Singh, hereby declare that the details above are true.\nRegards,\nTanvi Singh",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 78,
+    "value": "Tanvi Singh"
+   },
+   {
+    "type": "PERSON",
+    "start": 94,
+    "end": 108,
+    "value": "Harish Acharya"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 118,
+    "end": 167,
+    "value": "#70, 9th Main Road, Vidyanagar, Davangere, 577049"
+   },
+   {
+    "type": "PHONE",
+    "start": 176,
+    "end": 186,
+    "value": "6375204207"
+   },
+   {
+    "type": "EMAIL",
+    "start": 196,
+    "end": 218,
+    "value": "tanvi.singh41@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 228,
+    "end": 240,
+    "value": "984969653287"
+   },
+   {
+    "type": "PAN",
+    "start": 246,
+    "end": 256,
+    "value": "BDEHS6916V"
+   },
+   {
+    "type": "PERSON",
+    "start": 330,
+    "end": 341,
+    "value": "Tanvi Singh"
+   },
+   {
+    "type": "PERSON",
+    "start": 400,
+    "end": 411,
+    "value": "Tanvi Singh"
+   }
+  ]
+ },
+ {
+  "id": "DOC003",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN8519962896\nApplicant Name: Rekha Chowdhury\nFather's Name: Bhavana Sharma\nAddress: Flat 112B, Lotus Apartments, Adyar, Chennai 600038\nMobile: 6488983748   Email: rekha.chowdhury65@outlook.com\nAadhaar: 643039117182\nPAN: RTFAC8645V\nLoan requested: Rs. 1450000 for two-wheeler purchase over 24 months.\nDeclaration: I, Rekha Chowdhury, hereby declare that the details above are true.\nRegards,\nRekha Chowdhury",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 82,
+    "value": "Rekha Chowdhury"
+   },
+   {
+    "type": "PERSON",
+    "start": 98,
+    "end": 112,
+    "value": "Bhavana Sharma"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 122,
+    "end": 172,
+    "value": "Flat 112B, Lotus Apartments, Adyar, Chennai 600038"
+   },
+   {
+    "type": "PHONE",
+    "start": 181,
+    "end": 191,
+    "value": "6488983748"
+   },
+   {
+    "type": "EMAIL",
+    "start": 201,
+    "end": 230,
+    "value": "rekha.chowdhury65@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 240,
+    "end": 252,
+    "value": "643039117182"
+   },
+   {
+    "type": "PAN",
+    "start": 258,
+    "end": 268,
+    "value": "RTFAC8645V"
+   },
+   {
+    "type": "PERSON",
+    "start": 354,
+    "end": 369,
+    "value": "Rekha Chowdhury"
+   },
+   {
+    "type": "PERSON",
+    "start": 428,
+    "end": 443,
+    "value": "Rekha Chowdhury"
+   }
+  ]
+ },
+ {
+  "id": "DOC004",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN1519709079\nApplicant Name: Anita Shetty\nFather's Name: Deepa Gupta\nAddress: No. 6, 10th Cross, Andheri East, Mumbai - 400044\nMobile: 6375008834   Email: anita.shetty5@yahoo.in\nAadhaar: 3834-7382-9971\nPAN: GDDBS5804P\nBusiness: Shakti Textiles  GSTIN: 33PQZPS1612B6ZC\nLoan requested: Rs. 400000 for two-wheeler purchase over 24 months.\nDeclaration: I, Anita Shetty, hereby declare that the details above are true.\nRegards,\nAnita Shetty",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 79,
+    "value": "Anita Shetty"
+   },
+   {
+    "type": "PERSON",
+    "start": 95,
+    "end": 106,
+    "value": "Deepa Gupta"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 116,
+    "end": 164,
+    "value": "No. 6, 10th Cross, Andheri East, Mumbai - 400044"
+   },
+   {
+    "type": "PHONE",
+    "start": 173,
+    "end": 183,
+    "value": "6375008834"
+   },
+   {
+    "type": "EMAIL",
+    "start": 193,
+    "end": 215,
+    "value": "anita.shetty5@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 225,
+    "end": 239,
+    "value": "3834-7382-9971"
+   },
+   {
+    "type": "PAN",
+    "start": 245,
+    "end": 255,
+    "value": "GDDBS5804P"
+   },
+   {
+    "type": "GSTIN",
+    "start": 290,
+    "end": 305,
+    "value": "33PQZPS1612B6ZC"
+   },
+   {
+    "type": "PERSON",
+    "start": 390,
+    "end": 402,
+    "value": "Anita Shetty"
+   },
+   {
+    "type": "PERSON",
+    "start": 461,
+    "end": 473,
+    "value": "Anita Shetty"
+   }
+  ]
+ },
+ {
+  "id": "DOC005",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN4965395580\nApplicant Name: Prakash Banerjee\nFather's Name: Tanvi Yadav\nAddress: Flat 13B, Green Apartments, Baner, Pune 411013\nMobile: +91 97886 28016   Email: prakash.banerjee52@gmail.com\nAadhaar: 409805009788\nPAN: SCFCB9749C\nLoan requested: Rs. 850000 for education over 12 months.\nDeclaration: I, Prakash Banerjee, hereby declare that the details above are true.\nRegards,\nPrakash Banerjee",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 83,
+    "value": "Prakash Banerjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 99,
+    "end": 110,
+    "value": "Tanvi Yadav"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 120,
+    "end": 166,
+    "value": "Flat 13B, Green Apartments, Baner, Pune 411013"
+   },
+   {
+    "type": "PHONE",
+    "start": 175,
+    "end": 190,
+    "value": "+91 97886 28016"
+   },
+   {
+    "type": "EMAIL",
+    "start": 200,
+    "end": 228,
+    "value": "prakash.banerjee52@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 238,
+    "end": 250,
+    "value": "409805009788"
+   },
+   {
+    "type": "PAN",
+    "start": 256,
+    "end": 266,
+    "value": "SCFCB9749C"
+   },
+   {
+    "type": "PERSON",
+    "start": 340,
+    "end": 356,
+    "value": "Prakash Banerjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 415,
+    "end": 431,
+    "value": "Prakash Banerjee"
+   }
+  ]
+ },
+ {
+  "id": "DOC006",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN7540301973\nApplicant Name: Karthik Menon\nFather's Name: Amit Reddy\nAddress: #184, 5th Main Road, Karol Bagh, Delhi, 110086\nMobile: 6015260068   Email: karthik.menon80@outlook.com\nAadhaar: 3183-8425-1352\nPAN: VWSPM9086K\nLoan requested: Rs. 400000 for two-wheeler purchase over 36 months.\nDeclaration: I, Karthik Menon, hereby declare that the details above are true.\nRegards,\nKarthik Menon",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 80,
+    "value": "Karthik Menon"
+   },
+   {
+    "type": "PERSON",
+    "start": 96,
+    "end": 106,
+    "value": "Amit Reddy"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 116,
+    "end": 162,
+    "value": "#184, 5th Main Road, Karol Bagh, Delhi, 110086"
+   },
+   {
+    "type": "PHONE",
+    "start": 171,
+    "end": 181,
+    "value": "6015260068"
+   },
+   {
+    "type": "EMAIL",
+    "start": 191,
+    "end": 218,
+    "value": "karthik.menon80@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 228,
+    "end": 242,
+    "value": "3183-8425-1352"
+   },
+   {
+    "type": "PAN",
+    "start": 248,
+    "end": 258,
+    "value": "VWSPM9086K"
+   },
+   {
+    "type": "PERSON",
+    "start": 343,
+    "end": 356,
+    "value": "Karthik Menon"
+   },
+   {
+    "type": "PERSON",
+    "start": 415,
+    "end": 428,
+    "value": "Karthik Menon"
+   }
+  ]
+ },
+ {
+  "id": "DOC007",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN8377088167\nApplicant Name: Lakshmi S. Chatterjee\nFather's Name: Sandeep Siddiqui\nAddress: No. 219, 5th Cross, Powai, Mumbai - 400082\nMobile: 8072200464   Email: lakshmi.s..chatterjee43@gmail.com\nAadhaar: 6982 6204 5053\nPAN: MTPGC2532H\nBusiness: Kaveri Agro Foods  GSTIN: 07FFPPS2938Z7ZL\nLoan requested: Rs. 850000 for working capital over 24 months.\nDeclaration: I, Lakshmi S. Chatterjee, hereby declare that the details above are true.\nRegards,\nLakshmi S. Chatterjee",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 88,
+    "value": "Lakshmi S. Chatterjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 104,
+    "end": 120,
+    "value": "Sandeep Siddiqui"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 130,
+    "end": 172,
+    "value": "No. 219, 5th Cross, Powai, Mumbai - 400082"
+   },
+   {
+    "type": "PHONE",
+    "start": 181,
+    "end": 191,
+    "value": "8072200464"
+   },
+   {
+    "type": "EMAIL",
+    "start": 201,
+    "end": 234,
+    "value": "lakshmi.s..chatterjee43@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 244,
+    "end": 258,
+    "value": "6982 6204 5053"
+   },
+   {
+    "type": "PAN",
+    "start": 264,
+    "end": 274,
+    "value": "MTPGC2532H"
+   },
+   {
+    "type": "GSTIN",
+    "start": 311,
+    "end": 326,
+    "value": "07FFPPS2938Z7ZL"
+   },
+   {
+    "type": "PERSON",
+    "start": 406,
+    "end": 427,
+    "value": "Lakshmi S. Chatterjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 486,
+    "end": 507,
+    "value": "Lakshmi S. Chatterjee"
+   }
+  ]
+ },
+ {
+  "id": "DOC008",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN9239688178\nApplicant Name: Lakshmi Joshi\nFather's Name: Imran Pillai\nAddress: #58, 4th Main Road, T Nagar, Chennai, 600030\nMobile: 8575384080   Email: lakshmi.joshi66@yahoo.in\nAadhaar: 7014-2940-1968\nPAN: VSDBJ9446G\nLoan requested: Rs. 900000 for home renovation over 60 months.\nDeclaration: I, Lakshmi Joshi, hereby declare that the details above are true.\nRegards,\nLakshmi Joshi",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 80,
+    "value": "Lakshmi Joshi"
+   },
+   {
+    "type": "PERSON",
+    "start": 96,
+    "end": 108,
+    "value": "Imran Pillai"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 118,
+    "end": 162,
+    "value": "#58, 4th Main Road, T Nagar, Chennai, 600030"
+   },
+   {
+    "type": "PHONE",
+    "start": 171,
+    "end": 181,
+    "value": "8575384080"
+   },
+   {
+    "type": "EMAIL",
+    "start": 191,
+    "end": 215,
+    "value": "lakshmi.joshi66@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 225,
+    "end": 239,
+    "value": "7014-2940-1968"
+   },
+   {
+    "type": "PAN",
+    "start": 245,
+    "end": 255,
+    "value": "VSDBJ9446G"
+   },
+   {
+    "type": "PERSON",
+    "start": 335,
+    "end": 348,
+    "value": "Lakshmi Joshi"
+   },
+   {
+    "type": "PERSON",
+    "start": 407,
+    "end": 420,
+    "value": "Lakshmi Joshi"
+   }
+  ]
+ },
+ {
+  "id": "DOC009",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN7971399399\nApplicant Name: Yogesh S. Khan\nFather's Name: Anjali Hegde\nAddress: #130, 7th Main Road, Saraswathipuram, Mysuru, 570039\nMobile: 7688887153   Email: yogesh.s..khan49@outlook.com\nAadhaar: 4994-6804-4360\nPAN: QQQFK8375R\nLoan requested: Rs. 600000 for home renovation over 36 months.\nDeclaration: I, Yogesh S. Khan, hereby declare that the details above are true.\nRegards,\nYogesh S. Khan",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 81,
+    "value": "Yogesh S. Khan"
+   },
+   {
+    "type": "PERSON",
+    "start": 97,
+    "end": 109,
+    "value": "Anjali Hegde"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 119,
+    "end": 171,
+    "value": "#130, 7th Main Road, Saraswathipuram, Mysuru, 570039"
+   },
+   {
+    "type": "PHONE",
+    "start": 180,
+    "end": 190,
+    "value": "7688887153"
+   },
+   {
+    "type": "EMAIL",
+    "start": 200,
+    "end": 228,
+    "value": "yogesh.s..khan49@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 238,
+    "end": 252,
+    "value": "4994-6804-4360"
+   },
+   {
+    "type": "PAN",
+    "start": 258,
+    "end": 268,
+    "value": "QQQFK8375R"
+   },
+   {
+    "type": "PERSON",
+    "start": 348,
+    "end": 362,
+    "value": "Yogesh S. Khan"
+   },
+   {
+    "type": "PERSON",
+    "start": 421,
+    "end": 435,
+    "value": "Yogesh S. Khan"
+   }
+  ]
+ },
+ {
+  "id": "DOC010",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN1855256552\nApplicant Name: Usha Hegde\nFather's Name: Zoya S. Malhotra\nAddress: Flat 122B, Sai Apartments, Jayanagar, Bengaluru 560032\nMobile: 9809952383   Email: usha.hegde32@gmail.com\nAadhaar: 2163-2870-8313\nPAN: QVZJH6991T\nBusiness: Anand Electricals  GSTIN: 19QFZLS7373J4ZV\nLoan requested: Rs. 950000 for medical expenses over 60 months.\nDeclaration: I, Usha Hegde, hereby declare that the details above are true.\nRegards,\nUsha Hegde",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 77,
+    "value": "Usha Hegde"
+   },
+   {
+    "type": "PERSON",
+    "start": 93,
+    "end": 109,
+    "value": "Zoya S. Malhotra"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 119,
+    "end": 173,
+    "value": "Flat 122B, Sai Apartments, Jayanagar, Bengaluru 560032"
+   },
+   {
+    "type": "PHONE",
+    "start": 182,
+    "end": 192,
+    "value": "9809952383"
+   },
+   {
+    "type": "EMAIL",
+    "start": 202,
+    "end": 224,
+    "value": "usha.hegde32@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 234,
+    "end": 248,
+    "value": "2163-2870-8313"
+   },
+   {
+    "type": "PAN",
+    "start": 254,
+    "end": 264,
+    "value": "QVZJH6991T"
+   },
+   {
+    "type": "GSTIN",
+    "start": 301,
+    "end": 316,
+    "value": "19QFZLS7373J4ZV"
+   },
+   {
+    "type": "PERSON",
+    "start": 397,
+    "end": 407,
+    "value": "Usha Hegde"
+   },
+   {
+    "type": "PERSON",
+    "start": 466,
+    "end": 476,
+    "value": "Usha Hegde"
+   }
+  ]
+ },
+ {
+  "id": "DOC011",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN6737421496\nApplicant Name: Tanvi Gupta\nFather's Name: Abhishek B. Naik\nAddress: H.No. 4-39-9, Salt Lake, Kolkata - 700018\nMobile: 9681208161   Email: tanvi.gupta27@yahoo.in\nAadhaar: 8909 6705 4663\nPAN: RHJBG7956A\nLoan requested: Rs. 1300000 for working capital over 60 months.\nDeclaration: I, Tanvi Gupta, hereby declare that the details above are true.\nRegards,\nTanvi Gupta",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 78,
+    "value": "Tanvi Gupta"
+   },
+   {
+    "type": "PERSON",
+    "start": 94,
+    "end": 110,
+    "value": "Abhishek B. Naik"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 120,
+    "end": 161,
+    "value": "H.No. 4-39-9, Salt Lake, Kolkata - 700018"
+   },
+   {
+    "type": "PHONE",
+    "start": 170,
+    "end": 180,
+    "value": "9681208161"
+   },
+   {
+    "type": "EMAIL",
+    "start": 190,
+    "end": 212,
+    "value": "tanvi.gupta27@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 222,
+    "end": 236,
+    "value": "8909 6705 4663"
+   },
+   {
+    "type": "PAN",
+    "start": 242,
+    "end": 252,
+    "value": "RHJBG7956A"
+   },
+   {
+    "type": "PERSON",
+    "start": 333,
+    "end": 344,
+    "value": "Tanvi Gupta"
+   },
+   {
+    "type": "PERSON",
+    "start": 403,
+    "end": 414,
+    "value": "Tanvi Gupta"
+   }
+  ]
+ },
+ {
+  "id": "DOC012",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN9190197115\nApplicant Name: Rekha Banerjee\nFather's Name: Yogesh Patel\nAddress: Flat 7B, Green Apartments, Maninagar, Ahmedabad 380085\nMobile: +91 95363 27742   Email: rekha.banerjee59@yahoo.in\nAadhaar: 764641708056\nPAN: WBAFB3266A\nLoan requested: Rs. 550000 for two-wheeler purchase over 24 months.\nDeclaration: I, Rekha Banerjee, hereby declare that the details above are true.\nRegards,\nRekha Banerjee",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 81,
+    "value": "Rekha Banerjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 97,
+    "end": 109,
+    "value": "Yogesh Patel"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 119,
+    "end": 173,
+    "value": "Flat 7B, Green Apartments, Maninagar, Ahmedabad 380085"
+   },
+   {
+    "type": "PHONE",
+    "start": 182,
+    "end": 197,
+    "value": "+91 95363 27742"
+   },
+   {
+    "type": "EMAIL",
+    "start": 207,
+    "end": 232,
+    "value": "rekha.banerjee59@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 242,
+    "end": 254,
+    "value": "764641708056"
+   },
+   {
+    "type": "PAN",
+    "start": 260,
+    "end": 270,
+    "value": "WBAFB3266A"
+   },
+   {
+    "type": "PERSON",
+    "start": 355,
+    "end": 369,
+    "value": "Rekha Banerjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 428,
+    "end": 442,
+    "value": "Rekha Banerjee"
+   }
+  ]
+ },
+ {
+  "id": "DOC013",
+  "doc_type": "loan_application",
+  "text": "LOAN APPLICATION FORM\nApplication No: LN4518871744\nApplicant Name: Manjunath Siddiqui\nFather's Name: Gurpreet Shetty\nAddress: Flat 7B, Green Apartments, Karol Bagh, Delhi 110075\nMobile: +91 71669 91382   Email: manjunath.siddiqui99@yahoo.in\nAadhaar: 3905 8651 8501\nPAN: PMWLS2506P\nBusiness: Bharat Steel Works  GSTIN: 33FZSAS8817R7ZN\nLoan requested: Rs. 1950000 for working capital over 36 months.\nDeclaration: I, Manjunath Siddiqui, hereby declare that the details above are true.\nRegards,\nManjunath Siddiqui",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 67,
+    "end": 85,
+    "value": "Manjunath Siddiqui"
+   },
+   {
+    "type": "PERSON",
+    "start": 101,
+    "end": 116,
+    "value": "Gurpreet Shetty"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 126,
+    "end": 177,
+    "value": "Flat 7B, Green Apartments, Karol Bagh, Delhi 110075"
+   },
+   {
+    "type": "PHONE",
+    "start": 186,
+    "end": 201,
+    "value": "+91 71669 91382"
+   },
+   {
+    "type": "EMAIL",
+    "start": 211,
+    "end": 240,
+    "value": "manjunath.siddiqui99@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 250,
+    "end": 264,
+    "value": "3905 8651 8501"
+   },
+   {
+    "type": "PAN",
+    "start": 270,
+    "end": 280,
+    "value": "PMWLS2506P"
+   },
+   {
+    "type": "GSTIN",
+    "start": 318,
+    "end": 333,
+    "value": "33FZSAS8817R7ZN"
+   },
+   {
+    "type": "PERSON",
+    "start": 414,
+    "end": 432,
+    "value": "Manjunath Siddiqui"
+   },
+   {
+    "type": "PERSON",
+    "start": 491,
+    "end": 509,
+    "value": "Manjunath Siddiqui"
+   }
+  ]
+ },
+ {
+  "id": "DOC014",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Ramesh Naik\nDate of birth: 21/12/1991\nPermanent address: #76, 4th Main Road, Kothrud, Pune, 411012\nAadhaar number 9379-9650-7529\nVoter ID (EPIC): ZPR9314311\nPassport No. T4112214\nNominee: Sanjay Verma\nContact: 8576492124\nVerified by: Branch Manager Shilpa Bhat",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 45,
+    "value": "Ramesh Naik"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 91,
+    "end": 132,
+    "value": "#76, 4th Main Road, Kothrud, Pune, 411012"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 148,
+    "end": 162,
+    "value": "9379-9650-7529"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 180,
+    "end": 190,
+    "value": "ZPR9314311"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 204,
+    "end": 212,
+    "value": "T4112214"
+   },
+   {
+    "type": "PERSON",
+    "start": 222,
+    "end": 234,
+    "value": "Sanjay Verma"
+   },
+   {
+    "type": "PHONE",
+    "start": 244,
+    "end": 254,
+    "value": "8576492124"
+   },
+   {
+    "type": "PERSON",
+    "start": 283,
+    "end": 294,
+    "value": "Shilpa Bhat"
+   }
+  ]
+ },
+ {
+  "id": "DOC015",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Basavaraj Saxena\nDate of birth: 19/05/1990\nPermanent address: H.No. 2-48-9, Hadapsar, Pune - 411044\nPAN HMFAS0231Y\nPassport No. U3359541\nAadhaar number 3823-3749-8944\nNominee: Suresh B. Chatterjee\nContact: 8139532530\nVerified by: Branch Manager Mahesh R. Pillai",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 50,
+    "value": "Basavaraj Saxena"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 96,
+    "end": 133,
+    "value": "H.No. 2-48-9, Hadapsar, Pune - 411044"
+   },
+   {
+    "type": "PAN",
+    "start": 138,
+    "end": 148,
+    "value": "HMFAS0231Y"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 162,
+    "end": 170,
+    "value": "U3359541"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 186,
+    "end": 200,
+    "value": "3823-3749-8944"
+   },
+   {
+    "type": "PERSON",
+    "start": 210,
+    "end": 230,
+    "value": "Suresh B. Chatterjee"
+   },
+   {
+    "type": "PHONE",
+    "start": 240,
+    "end": 250,
+    "value": "8139532530"
+   },
+   {
+    "type": "PERSON",
+    "start": 279,
+    "end": 295,
+    "value": "Mahesh R. Pillai"
+   }
+  ]
+ },
+ {
+  "id": "DOC016",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Ravi Gupta\nDate of birth: 03/11/1974\nPermanent address: Flat 170B, Lotus Apartments, Lajpat Nagar, Delhi 110076\nAadhaar number 9496 4990 9135\nPAN FHFJG1229F\nVoter ID (EPIC): KBH4833597\nNominee: Anjali Kumar\nContact: +91 89749 98167\nVerified by: Branch Manager Abhishek Gupta",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 44,
+    "value": "Ravi Gupta"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 90,
+    "end": 145,
+    "value": "Flat 170B, Lotus Apartments, Lajpat Nagar, Delhi 110076"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 161,
+    "end": 175,
+    "value": "9496 4990 9135"
+   },
+   {
+    "type": "PAN",
+    "start": 180,
+    "end": 190,
+    "value": "FHFJG1229F"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 208,
+    "end": 218,
+    "value": "KBH4833597"
+   },
+   {
+    "type": "PERSON",
+    "start": 228,
+    "end": 240,
+    "value": "Anjali Kumar"
+   },
+   {
+    "type": "PHONE",
+    "start": 250,
+    "end": 265,
+    "value": "+91 89749 98167"
+   },
+   {
+    "type": "PERSON",
+    "start": 294,
+    "end": 308,
+    "value": "Abhishek Gupta"
+   }
+  ]
+ },
+ {
+  "id": "DOC017",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Shilpa S. Mehta\nDate of birth: 03/08/1982\nPermanent address: H.No. 7-172-89, Banjara Hills, Hyderabad - 500042\nAadhaar number 688771906597\nPAN XUUPM4415U\nPassport No. B3616699\nNominee: Anita Gowda\nContact: 8413542372\nVerified by: Branch Manager Anita V. Jain",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 49,
+    "value": "Shilpa S. Mehta"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 95,
+    "end": 144,
+    "value": "H.No. 7-172-89, Banjara Hills, Hyderabad - 500042"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 160,
+    "end": 172,
+    "value": "688771906597"
+   },
+   {
+    "type": "PAN",
+    "start": 177,
+    "end": 187,
+    "value": "XUUPM4415U"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 201,
+    "end": 209,
+    "value": "B3616699"
+   },
+   {
+    "type": "PERSON",
+    "start": 219,
+    "end": 230,
+    "value": "Anita Gowda"
+   },
+   {
+    "type": "PHONE",
+    "start": 240,
+    "end": 250,
+    "value": "8413542372"
+   },
+   {
+    "type": "PERSON",
+    "start": 279,
+    "end": 292,
+    "value": "Anita V. Jain"
+   }
+  ]
+ },
+ {
+  "id": "DOC018",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Rahul Acharya\nDate of birth: 27/02/1989\nPermanent address: H.No. 5-128-54, Saraswathipuram, Mysuru - 570020\nPAN KQYLA1989A\nPassport No. Y4930323\nAadhaar number 960385977036\nNominee: Bhavana Chatterjee\nContact: 7114336208\nVerified by: Branch Manager Mahesh Hegde",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 47,
+    "value": "Rahul Acharya"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 93,
+    "end": 141,
+    "value": "H.No. 5-128-54, Saraswathipuram, Mysuru - 570020"
+   },
+   {
+    "type": "PAN",
+    "start": 146,
+    "end": 156,
+    "value": "KQYLA1989A"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 170,
+    "end": 178,
+    "value": "Y4930323"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 194,
+    "end": 206,
+    "value": "960385977036"
+   },
+   {
+    "type": "PERSON",
+    "start": 216,
+    "end": 234,
+    "value": "Bhavana Chatterjee"
+   },
+   {
+    "type": "PHONE",
+    "start": 244,
+    "end": 254,
+    "value": "7114336208"
+   },
+   {
+    "type": "PERSON",
+    "start": 283,
+    "end": 295,
+    "value": "Mahesh Hegde"
+   }
+  ]
+ },
+ {
+  "id": "DOC019",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Naveen Naik\nDate of birth: 16/01/1968\nPermanent address: No. 223, 2th Cross, Garia, Kolkata - 700043\nPAN QLGFN9368N\nAadhaar number 2449-9727-8751\nPassport No. H7057206\nVoter ID (EPIC): ZRY6395997\nNominee: Sunita A. Ghosh\nContact: 8554681691\nVerified by: Branch Manager Ramesh Hegde",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 45,
+    "value": "Naveen Naik"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 91,
+    "end": 134,
+    "value": "No. 223, 2th Cross, Garia, Kolkata - 700043"
+   },
+   {
+    "type": "PAN",
+    "start": 139,
+    "end": 149,
+    "value": "QLGFN9368N"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 165,
+    "end": 179,
+    "value": "2449-9727-8751"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 193,
+    "end": 201,
+    "value": "H7057206"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 219,
+    "end": 229,
+    "value": "ZRY6395997"
+   },
+   {
+    "type": "PERSON",
+    "start": 239,
+    "end": 254,
+    "value": "Sunita A. Ghosh"
+   },
+   {
+    "type": "PHONE",
+    "start": 264,
+    "end": 274,
+    "value": "8554681691"
+   },
+   {
+    "type": "PERSON",
+    "start": 303,
+    "end": 315,
+    "value": "Ramesh Hegde"
+   }
+  ]
+ },
+ {
+  "id": "DOC020",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Yogesh Joshi\nDate of birth: 06/03/1965\nPermanent address: #175, 3th Main Road, Satellite, Ahmedabad, 380080\nPAN QFYAJ0474B\nAadhaar number 7780 9134 3165\nPassport No. L1384526\nNominee: Rahul Yadav\nContact: 7121057898\nVerified by: Branch Manager Ayesha Malhotra",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 46,
+    "value": "Yogesh Joshi"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 92,
+    "end": 141,
+    "value": "#175, 3th Main Road, Satellite, Ahmedabad, 380080"
+   },
+   {
+    "type": "PAN",
+    "start": 146,
+    "end": 156,
+    "value": "QFYAJ0474B"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 172,
+    "end": 186,
+    "value": "7780 9134 3165"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 200,
+    "end": 208,
+    "value": "L1384526"
+   },
+   {
+    "type": "PERSON",
+    "start": 218,
+    "end": 229,
+    "value": "Rahul Yadav"
+   },
+   {
+    "type": "PHONE",
+    "start": 239,
+    "end": 249,
+    "value": "7121057898"
+   },
+   {
+    "type": "PERSON",
+    "start": 278,
+    "end": 293,
+    "value": "Ayesha Malhotra"
+   }
+  ]
+ },
+ {
+  "id": "DOC021",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Divya Bhat\nDate of birth: 21/02/2000\nPermanent address: #9, 3th Main Road, Malleshwaram, Bengaluru, 560057\nPAN XNJPB9272X\nAadhaar number 9436 7136 9596\nVoter ID (EPIC): VMH3189885\nPassport No. B8375124\nNominee: Basavaraj Banerjee\nContact: 8869765771\nVerified by: Branch Manager Harish Bhat",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 44,
+    "value": "Divya Bhat"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 90,
+    "end": 140,
+    "value": "#9, 3th Main Road, Malleshwaram, Bengaluru, 560057"
+   },
+   {
+    "type": "PAN",
+    "start": 145,
+    "end": 155,
+    "value": "XNJPB9272X"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 171,
+    "end": 185,
+    "value": "9436 7136 9596"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 203,
+    "end": 213,
+    "value": "VMH3189885"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 227,
+    "end": 235,
+    "value": "B8375124"
+   },
+   {
+    "type": "PERSON",
+    "start": 245,
+    "end": 263,
+    "value": "Basavaraj Banerjee"
+   },
+   {
+    "type": "PHONE",
+    "start": 273,
+    "end": 283,
+    "value": "8869765771"
+   },
+   {
+    "type": "PERSON",
+    "start": 312,
+    "end": 323,
+    "value": "Harish Bhat"
+   }
+  ]
+ },
+ {
+  "id": "DOC022",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Imran Kaur\nDate of birth: 18/03/1984\nPermanent address: No. 191, 12th Cross, Hadapsar, Pune - 411086\nPAN VHWCK7606Y\nPassport No. K7152923\nVoter ID (EPIC): BBK8264869\nNominee: Tanvi Gowda\nContact: 7726458287\nVerified by: Branch Manager Pooja Nair",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 44,
+    "value": "Imran Kaur"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 90,
+    "end": 134,
+    "value": "No. 191, 12th Cross, Hadapsar, Pune - 411086"
+   },
+   {
+    "type": "PAN",
+    "start": 139,
+    "end": 149,
+    "value": "VHWCK7606Y"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 163,
+    "end": 171,
+    "value": "K7152923"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 189,
+    "end": 199,
+    "value": "BBK8264869"
+   },
+   {
+    "type": "PERSON",
+    "start": 209,
+    "end": 220,
+    "value": "Tanvi Gowda"
+   },
+   {
+    "type": "PHONE",
+    "start": 230,
+    "end": 240,
+    "value": "7726458287"
+   },
+   {
+    "type": "PERSON",
+    "start": 269,
+    "end": 279,
+    "value": "Pooja Nair"
+   }
+  ]
+ },
+ {
+  "id": "DOC023",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Pooja Acharya\nDate of birth: 02/03/1986\nPermanent address: No. 17, 8th Cross, Salt Lake, Kolkata - 700096\nPassport No. D1172751\nPAN JEEJA4106F\nVoter ID (EPIC): MHU5431983\nNominee: Usha Gowda\nContact: 8750484323\nVerified by: Branch Manager Suresh Ghosh",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 47,
+    "value": "Pooja Acharya"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 93,
+    "end": 139,
+    "value": "No. 17, 8th Cross, Salt Lake, Kolkata - 700096"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 153,
+    "end": 161,
+    "value": "D1172751"
+   },
+   {
+    "type": "PAN",
+    "start": 166,
+    "end": 176,
+    "value": "JEEJA4106F"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 194,
+    "end": 204,
+    "value": "MHU5431983"
+   },
+   {
+    "type": "PERSON",
+    "start": 214,
+    "end": 224,
+    "value": "Usha Gowda"
+   },
+   {
+    "type": "PHONE",
+    "start": 234,
+    "end": 244,
+    "value": "8750484323"
+   },
+   {
+    "type": "PERSON",
+    "start": 273,
+    "end": 285,
+    "value": "Suresh Ghosh"
+   }
+  ]
+ },
+ {
+  "id": "DOC024",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Divya Nair\nDate of birth: 14/06/1989\nPermanent address: Flat 25B, Lotus Apartments, Banjara Hills, Hyderabad 500094\nPassport No. W7129992\nAadhaar number 9711-5921-2499\nPAN NVSAN7433S\nVoter ID (EPIC): WWT3607488\nNominee: Anjali Reddy\nContact: 6707512656\nVerified by: Branch Manager Pooja Banerjee",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 44,
+    "value": "Divya Nair"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 90,
+    "end": 149,
+    "value": "Flat 25B, Lotus Apartments, Banjara Hills, Hyderabad 500094"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 163,
+    "end": 171,
+    "value": "W7129992"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 187,
+    "end": 201,
+    "value": "9711-5921-2499"
+   },
+   {
+    "type": "PAN",
+    "start": 206,
+    "end": 216,
+    "value": "NVSAN7433S"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 234,
+    "end": 244,
+    "value": "WWT3607488"
+   },
+   {
+    "type": "PERSON",
+    "start": 254,
+    "end": 266,
+    "value": "Anjali Reddy"
+   },
+   {
+    "type": "PHONE",
+    "start": 276,
+    "end": 286,
+    "value": "6707512656"
+   },
+   {
+    "type": "PERSON",
+    "start": 315,
+    "end": 329,
+    "value": "Pooja Banerjee"
+   }
+  ]
+ },
+ {
+  "id": "DOC025",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Ayesha Hegde\nDate of birth: 01/03/1977\nPermanent address: No. 2, 3th Cross, Dwarka Sector 7, Delhi - 110045\nVoter ID (EPIC): PTV9340543\nPAN RHDTH9113M\nNominee: Chaitra Joshi\nContact: 8257848503\nVerified by: Branch Manager Kiran Reddy",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 46,
+    "value": "Ayesha Hegde"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 92,
+    "end": 141,
+    "value": "No. 2, 3th Cross, Dwarka Sector 7, Delhi - 110045"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 159,
+    "end": 169,
+    "value": "PTV9340543"
+   },
+   {
+    "type": "PAN",
+    "start": 174,
+    "end": 184,
+    "value": "RHDTH9113M"
+   },
+   {
+    "type": "PERSON",
+    "start": 194,
+    "end": 207,
+    "value": "Chaitra Joshi"
+   },
+   {
+    "type": "PHONE",
+    "start": 217,
+    "end": 227,
+    "value": "8257848503"
+   },
+   {
+    "type": "PERSON",
+    "start": 256,
+    "end": 267,
+    "value": "Kiran Reddy"
+   }
+  ]
+ },
+ {
+  "id": "DOC026",
+  "doc_type": "kyc",
+  "text": "KYC VERIFICATION RECORD\nCustomer: Sunita Kulkarni\nDate of birth: 25/05/1978\nPermanent address: Flat 128B, Lotus Apartments, Adyar, Chennai 600001\nPAN PDKGK7972S\nVoter ID (EPIC): VBA3429650\nAadhaar number 214767976439\nPassport No. K1289037\nNominee: Sanjay Singh\nContact: 6714702456\nVerified by: Branch Manager Anjali Saxena",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 34,
+    "end": 49,
+    "value": "Sunita Kulkarni"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 95,
+    "end": 145,
+    "value": "Flat 128B, Lotus Apartments, Adyar, Chennai 600001"
+   },
+   {
+    "type": "PAN",
+    "start": 150,
+    "end": 160,
+    "value": "PDKGK7972S"
+   },
+   {
+    "type": "VOTER_ID",
+    "start": 178,
+    "end": 188,
+    "value": "VBA3429650"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 204,
+    "end": 216,
+    "value": "214767976439"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 230,
+    "end": 238,
+    "value": "K1289037"
+   },
+   {
+    "type": "PERSON",
+    "start": 248,
+    "end": 260,
+    "value": "Sanjay Singh"
+   },
+   {
+    "type": "PHONE",
+    "start": 270,
+    "end": 280,
+    "value": "6714702456"
+   },
+   {
+    "type": "PERSON",
+    "start": 309,
+    "end": 322,
+    "value": "Anjali Saxena"
+   }
+  ]
+ },
+ {
+  "id": "DOC027",
+  "doc_type": "support_ticket",
+  "text": "Nanna hesaru Karthik Mehta. Nanna Aadhaar number 841605297511 ide, adu update maadi. Nanna mobile 9858410308. Nanna address No. 87, 4th Cross, Banjara Hills, Hyderabad - 500096 alli iddini. Dhanyavadagalu.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 13,
+    "end": 26,
+    "value": "Karthik Mehta"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 49,
+    "end": 61,
+    "value": "841605297511"
+   },
+   {
+    "type": "PHONE",
+    "start": 98,
+    "end": 108,
+    "value": "9858410308"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 124,
+    "end": 176,
+    "value": "No. 87, 4th Cross, Banjara Hills, Hyderabad - 500096"
+   }
+  ]
+ },
+ {
+  "id": "DOC028",
+  "doc_type": "support_ticket",
+  "text": "Ticket #TKT-2025-862712\nSubject: Unable to update KYC\nHello team, my name is Basavaraj Patil. My Aadhaar 4312-4329-2125 is not linking with my PAN UUQGP5295W. Please call me on 9111861462 or write to basavaraj.patil57@outlook.com. My address is H.No. 5-15-60, Dwarka Sector 7, Delhi - 110076. Thanks.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 77,
+    "end": 92,
+    "value": "Basavaraj Patil"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 105,
+    "end": 119,
+    "value": "4312-4329-2125"
+   },
+   {
+    "type": "PAN",
+    "start": 147,
+    "end": 157,
+    "value": "UUQGP5295W"
+   },
+   {
+    "type": "PHONE",
+    "start": 177,
+    "end": 187,
+    "value": "9111861462"
+   },
+   {
+    "type": "EMAIL",
+    "start": 200,
+    "end": 229,
+    "value": "basavaraj.patil57@outlook.com"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 245,
+    "end": 291,
+    "value": "H.No. 5-15-60, Dwarka Sector 7, Delhi - 110076"
+   }
+  ]
+ },
+ {
+  "id": "DOC029",
+  "doc_type": "support_ticket",
+  "text": "Namaste, mera naam Pooja V. Kaur hai. Mera Aadhaar 3199 8679 8078 link nahi ho raha hai aur meri PAN LVRJK2471B bhi update karni hai. Aap mujhe 8138166132 par call karo. Amit Menon ji ne bola ki branch jaana padega. Mera address: H.No. 6-134-37, Hadapsar, Pune - 411068",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 19,
+    "end": 32,
+    "value": "Pooja V. Kaur"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 51,
+    "end": 65,
+    "value": "3199 8679 8078"
+   },
+   {
+    "type": "PAN",
+    "start": 101,
+    "end": 111,
+    "value": "LVRJK2471B"
+   },
+   {
+    "type": "PHONE",
+    "start": 144,
+    "end": 154,
+    "value": "8138166132"
+   },
+   {
+    "type": "PERSON",
+    "start": 170,
+    "end": 180,
+    "value": "Amit Menon"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 230,
+    "end": 269,
+    "value": "H.No. 6-134-37, Hadapsar, Pune - 411068"
+   }
+  ]
+ },
+ {
+  "id": "DOC030",
+  "doc_type": "support_ticket",
+  "text": "Nanna hesaru Meena Kumar. Nanna Aadhaar number 3546 2914 8652 ide, adu update maadi. Nanna mobile 9833147425. Nanna address Flat 47B, Lotus Apartments, Malleshwaram, Bengaluru 560040 alli iddini. Dhanyavadagalu.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 13,
+    "end": 24,
+    "value": "Meena Kumar"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 47,
+    "end": 61,
+    "value": "3546 2914 8652"
+   },
+   {
+    "type": "PHONE",
+    "start": 98,
+    "end": 108,
+    "value": "9833147425"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 124,
+    "end": 182,
+    "value": "Flat 47B, Lotus Apartments, Malleshwaram, Bengaluru 560040"
+   }
+  ]
+ },
+ {
+  "id": "DOC031",
+  "doc_type": "support_ticket",
+  "text": "Ticket #TKT-2026-908320\nSubject: Unable to update KYC\nHello team, my name is Abhishek Nair. My Aadhaar 259296222920 is not linking with my PAN MXZFN7277V. Please call me on +91 93833 69993 or write to abhishek.nair31@yahoo.in. My address is H.No. 5-174-49, Kothrud, Pune - 411048. Thanks.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 77,
+    "end": 90,
+    "value": "Abhishek Nair"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 103,
+    "end": 115,
+    "value": "259296222920"
+   },
+   {
+    "type": "PAN",
+    "start": 143,
+    "end": 153,
+    "value": "MXZFN7277V"
+   },
+   {
+    "type": "PHONE",
+    "start": 173,
+    "end": 188,
+    "value": "+91 93833 69993"
+   },
+   {
+    "type": "EMAIL",
+    "start": 201,
+    "end": 225,
+    "value": "abhishek.nair31@yahoo.in"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 241,
+    "end": 279,
+    "value": "H.No. 5-174-49, Kothrud, Pune - 411048"
+   }
+  ]
+ },
+ {
+  "id": "DOC032",
+  "doc_type": "support_ticket",
+  "text": "Namaste, mera naam Basavaraj Banerjee hai. Mera Aadhaar 6075 8181 4122 link nahi ho raha hai aur meri PAN PCHLB5727A bhi update karni hai. Aap mujhe 9822449015 par call karo. Ramesh Shetty ji ne bola ki branch jaana padega. Mera address: No. 239, 2th Cross, Andheri East, Mumbai - 400041",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 19,
+    "end": 37,
+    "value": "Basavaraj Banerjee"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 56,
+    "end": 70,
+    "value": "6075 8181 4122"
+   },
+   {
+    "type": "PAN",
+    "start": 106,
+    "end": 116,
+    "value": "PCHLB5727A"
+   },
+   {
+    "type": "PHONE",
+    "start": 149,
+    "end": 159,
+    "value": "9822449015"
+   },
+   {
+    "type": "PERSON",
+    "start": 175,
+    "end": 188,
+    "value": "Ramesh Shetty"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 238,
+    "end": 287,
+    "value": "No. 239, 2th Cross, Andheri East, Mumbai - 400041"
+   }
+  ]
+ },
+ {
+  "id": "DOC033",
+  "doc_type": "support_ticket",
+  "text": "Nanna hesaru Imran Banerjee. Nanna Aadhaar number 979010432892 ide, adu update maadi. Nanna mobile +91 81996 06258. Nanna address No. 204, 10th Cross, Dadar West, Mumbai - 400082 alli iddini. Dhanyavadagalu.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 13,
+    "end": 27,
+    "value": "Imran Banerjee"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 50,
+    "end": 62,
+    "value": "979010432892"
+   },
+   {
+    "type": "PHONE",
+    "start": 99,
+    "end": 114,
+    "value": "+91 81996 06258"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 130,
+    "end": 178,
+    "value": "No. 204, 10th Cross, Dadar West, Mumbai - 400082"
+   }
+  ]
+ },
+ {
+  "id": "DOC034",
+  "doc_type": "support_ticket",
+  "text": "Ticket #TKT-2026-250551\nSubject: Unable to update KYC\nHello team, my name is Karthik Menon. My Aadhaar 660953962188 is not linking with my PAN STSJM9079A. Please call me on 9071383318 or write to karthik.menon50@yahoo.in. My address is #92, 4th Main Road, Lajpat Nagar, Delhi, 110003. Thanks.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 77,
+    "end": 90,
+    "value": "Karthik Menon"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 103,
+    "end": 115,
+    "value": "660953962188"
+   },
+   {
+    "type": "PAN",
+    "start": 143,
+    "end": 153,
+    "value": "STSJM9079A"
+   },
+   {
+    "type": "PHONE",
+    "start": 173,
+    "end": 183,
+    "value": "9071383318"
+   },
+   {
+    "type": "EMAIL",
+    "start": 196,
+    "end": 220,
+    "value": "karthik.menon50@yahoo.in"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 236,
+    "end": 283,
+    "value": "#92, 4th Main Road, Lajpat Nagar, Delhi, 110003"
+   }
+  ]
+ },
+ {
+  "id": "DOC035",
+  "doc_type": "support_ticket",
+  "text": "Namaste, mera naam Sanjay R. Hegde hai. Mera Aadhaar 4772-2170-4309 link nahi ho raha hai aur meri PAN KSNJH7756J bhi update karni hai. Aap mujhe +91 74687 46789 par call karo. Suresh Hegde ji ne bola ki branch jaana padega. Mera address: Flat 112B, Green Apartments, Karol Bagh, Delhi 110048",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 19,
+    "end": 34,
+    "value": "Sanjay R. Hegde"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 53,
+    "end": 67,
+    "value": "4772-2170-4309"
+   },
+   {
+    "type": "PAN",
+    "start": 103,
+    "end": 113,
+    "value": "KSNJH7756J"
+   },
+   {
+    "type": "PHONE",
+    "start": 146,
+    "end": 161,
+    "value": "+91 74687 46789"
+   },
+   {
+    "type": "PERSON",
+    "start": 177,
+    "end": 189,
+    "value": "Suresh Hegde"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 239,
+    "end": 292,
+    "value": "Flat 112B, Green Apartments, Karol Bagh, Delhi 110048"
+   }
+  ]
+ },
+ {
+  "id": "DOC036",
+  "doc_type": "support_ticket",
+  "text": "Nanna hesaru Swati Shetty. Nanna Aadhaar number 5479-6275-7059 ide, adu update maadi. Nanna mobile 6122987973. Nanna address H.No. 1-206-19, Banjara Hills, Hyderabad - 500066 alli iddini. Dhanyavadagalu.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 13,
+    "end": 25,
+    "value": "Swati Shetty"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 48,
+    "end": 62,
+    "value": "5479-6275-7059"
+   },
+   {
+    "type": "PHONE",
+    "start": 99,
+    "end": 109,
+    "value": "6122987973"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 125,
+    "end": 174,
+    "value": "H.No. 1-206-19, Banjara Hills, Hyderabad - 500066"
+   }
+  ]
+ },
+ {
+  "id": "DOC037",
+  "doc_type": "support_ticket",
+  "text": "Ticket #TKT-2025-501451\nSubject: Unable to update KYC\nHello team, my name is Anjali B. Shetty. My Aadhaar 2927-5571-9286 is not linking with my PAN HDAHS8176S. Please call me on 6428834116 or write to anjali.b..shetty91@yahoo.in. My address is H.No. 3-178-10, Powai, Mumbai - 400037. Thanks.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 77,
+    "end": 93,
+    "value": "Anjali B. Shetty"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 106,
+    "end": 120,
+    "value": "2927-5571-9286"
+   },
+   {
+    "type": "PAN",
+    "start": 148,
+    "end": 158,
+    "value": "HDAHS8176S"
+   },
+   {
+    "type": "PHONE",
+    "start": 178,
+    "end": 188,
+    "value": "6428834116"
+   },
+   {
+    "type": "EMAIL",
+    "start": 201,
+    "end": 228,
+    "value": "anjali.b..shetty91@yahoo.in"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 244,
+    "end": 282,
+    "value": "H.No. 3-178-10, Powai, Mumbai - 400037"
+   }
+  ]
+ },
+ {
+  "id": "DOC038",
+  "doc_type": "support_ticket",
+  "text": "Namaste, mera naam Prakash Reddy hai. Mera Aadhaar 7518 8442 2584 link nahi ho raha hai aur meri PAN HRATR9077U bhi update karni hai. Aap mujhe 7141208617 par call karo. Imran Chowdhury ji ne bola ki branch jaana padega. Mera address: #19, 2th Main Road, Banjara Hills, Hyderabad, 500074",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 19,
+    "end": 32,
+    "value": "Prakash Reddy"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 51,
+    "end": 65,
+    "value": "7518 8442 2584"
+   },
+   {
+    "type": "PAN",
+    "start": 101,
+    "end": 111,
+    "value": "HRATR9077U"
+   },
+   {
+    "type": "PHONE",
+    "start": 144,
+    "end": 154,
+    "value": "7141208617"
+   },
+   {
+    "type": "PERSON",
+    "start": 170,
+    "end": 185,
+    "value": "Imran Chowdhury"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 235,
+    "end": 287,
+    "value": "#19, 2th Main Road, Banjara Hills, Hyderabad, 500074"
+   }
+  ]
+ },
+ {
+  "id": "DOC039",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2026-158104\nPolicy No: POL3083077\nPolicyholder: Bhavana S. Deshpande\nClaimant (self): Vijay Verma\nHospital: City Care Hospital, admitted 05/05/2026\nAddress: No. 240, 12th Cross, MCC B Block, Davangere - 577042\nContact: +91 82050 81922, vijay.verma39@outlook.com\nAadhaar: 1109-4396-9078\nBank UTR: 368362204552\n",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 105,
+    "value": "Bhavana S. Deshpande"
+   },
+   {
+    "type": "PERSON",
+    "start": 123,
+    "end": 134,
+    "value": "Vijay Verma"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 194,
+    "end": 246,
+    "value": "No. 240, 12th Cross, MCC B Block, Davangere - 577042"
+   },
+   {
+    "type": "PHONE",
+    "start": 256,
+    "end": 271,
+    "value": "+91 82050 81922"
+   },
+   {
+    "type": "EMAIL",
+    "start": 273,
+    "end": 298,
+    "value": "vijay.verma39@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 308,
+    "end": 322,
+    "value": "1109-4396-9078"
+   }
+  ]
+ },
+ {
+  "id": "DOC040",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-535810\nPolicy No: POL9124385\nPolicyholder: Anita Malhotra\nClaimant (son): Suresh Kulkarni\nHospital: City Care Hospital, admitted 07/06/2026\nAddress: #221, 6th Main Road, Navrangpura, Ahmedabad, 380041\nContact: 6522831685, suresh.kulkarni60@gmail.com\nAadhaar: 6732-1046-9630\nBank UTR: 735370624829\nNote: Mr. Malhotra requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 99,
+    "value": "Anita Malhotra"
+   },
+   {
+    "type": "PERSON",
+    "start": 116,
+    "end": 131,
+    "value": "Suresh Kulkarni"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 191,
+    "end": 242,
+    "value": "#221, 6th Main Road, Navrangpura, Ahmedabad, 380041"
+   },
+   {
+    "type": "PHONE",
+    "start": 252,
+    "end": 262,
+    "value": "6522831685"
+   },
+   {
+    "type": "EMAIL",
+    "start": 264,
+    "end": 291,
+    "value": "suresh.kulkarni60@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 301,
+    "end": 315,
+    "value": "6732-1046-9630"
+   },
+   {
+    "type": "PERSON",
+    "start": 349,
+    "end": 357,
+    "value": "Malhotra"
+   }
+  ]
+ },
+ {
+  "id": "DOC041",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-423528\nPolicy No: POL9344488\nPolicyholder: Basavaraj Kulkarni\nClaimant (spouse): Naveen Yadav\nHospital: City Care Hospital, admitted 03/07/2026\nAddress: H.No. 1-56-37, Behala, Kolkata - 700031\nContact: 9468170345, naveen.yadav2@gmail.com\nAadhaar: 9416-8784-9912\nBank UTR: 973481235730\nPassport (overseas cover): L9479203\nNote: Mr. Kulkarni requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 103,
+    "value": "Basavaraj Kulkarni"
+   },
+   {
+    "type": "PERSON",
+    "start": 123,
+    "end": 135,
+    "value": "Naveen Yadav"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 195,
+    "end": 234,
+    "value": "H.No. 1-56-37, Behala, Kolkata - 700031"
+   },
+   {
+    "type": "PHONE",
+    "start": 244,
+    "end": 254,
+    "value": "9468170345"
+   },
+   {
+    "type": "EMAIL",
+    "start": 256,
+    "end": 279,
+    "value": "naveen.yadav2@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 289,
+    "end": 303,
+    "value": "9416-8784-9912"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 354,
+    "end": 362,
+    "value": "L9479203"
+   },
+   {
+    "type": "PERSON",
+    "start": 373,
+    "end": 381,
+    "value": "Kulkarni"
+   }
+  ]
+ },
+ {
+  "id": "DOC042",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2024-848255\nPolicy No: POL6587495\nPolicyholder: Naveen Mehta\nClaimant (son): Amit Gowda\nHospital: City Care Hospital, admitted 17/08/2026\nAddress: #36, 6th Main Road, PJ Extension, Davangere, 577066\nContact: 9922239294, amit.gowda61@gmail.com\nAadhaar: 7516-9409-7490\nBank UTR: 676257961395\nNote: Mr. Mehta requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 97,
+    "value": "Naveen Mehta"
+   },
+   {
+    "type": "PERSON",
+    "start": 114,
+    "end": 124,
+    "value": "Amit Gowda"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 184,
+    "end": 235,
+    "value": "#36, 6th Main Road, PJ Extension, Davangere, 577066"
+   },
+   {
+    "type": "PHONE",
+    "start": 245,
+    "end": 255,
+    "value": "9922239294"
+   },
+   {
+    "type": "EMAIL",
+    "start": 257,
+    "end": 279,
+    "value": "amit.gowda61@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 289,
+    "end": 303,
+    "value": "7516-9409-7490"
+   },
+   {
+    "type": "PERSON",
+    "start": 337,
+    "end": 342,
+    "value": "Mehta"
+   }
+  ]
+ },
+ {
+  "id": "DOC043",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2024-119857\nPolicy No: POL8399399\nPolicyholder: Usha Joshi\nClaimant (son): Zoya A. Iyer\nHospital: City Care Hospital, admitted 14/03/2026\nAddress: Flat 106B, Green Apartments, Kukatpally, Hyderabad 500027\nContact: 8783768875, zoya.a..iyer49@yahoo.in\nAadhaar: 4785-8549-7330\nBank UTR: 416844780876\nNote: Mr. Joshi requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 95,
+    "value": "Usha Joshi"
+   },
+   {
+    "type": "PERSON",
+    "start": 112,
+    "end": 124,
+    "value": "Zoya A. Iyer"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 184,
+    "end": 241,
+    "value": "Flat 106B, Green Apartments, Kukatpally, Hyderabad 500027"
+   },
+   {
+    "type": "PHONE",
+    "start": 251,
+    "end": 261,
+    "value": "8783768875"
+   },
+   {
+    "type": "EMAIL",
+    "start": 263,
+    "end": 286,
+    "value": "zoya.a..iyer49@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 296,
+    "end": 310,
+    "value": "4785-8549-7330"
+   },
+   {
+    "type": "PERSON",
+    "start": 344,
+    "end": 349,
+    "value": "Joshi"
+   }
+  ]
+ },
+ {
+  "id": "DOC044",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-227794\nPolicy No: POL7370211\nPolicyholder: Swati Saxena\nClaimant (son): Bhavana Naik\nHospital: City Care Hospital, admitted 27/06/2026\nAddress: #74, 6th Main Road, Vidyanagar, Davangere, 577006\nContact: 7331070592, bhavana.naik35@outlook.com\nAadhaar: 7571-2082-6773\nBank UTR: 414912017394\nNote: Mr. Saxena requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 97,
+    "value": "Swati Saxena"
+   },
+   {
+    "type": "PERSON",
+    "start": 114,
+    "end": 126,
+    "value": "Bhavana Naik"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 186,
+    "end": 235,
+    "value": "#74, 6th Main Road, Vidyanagar, Davangere, 577006"
+   },
+   {
+    "type": "PHONE",
+    "start": 245,
+    "end": 255,
+    "value": "7331070592"
+   },
+   {
+    "type": "EMAIL",
+    "start": 257,
+    "end": 283,
+    "value": "bhavana.naik35@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 293,
+    "end": 307,
+    "value": "7571-2082-6773"
+   },
+   {
+    "type": "PERSON",
+    "start": 341,
+    "end": 347,
+    "value": "Saxena"
+   }
+  ]
+ },
+ {
+  "id": "DOC045",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-978292\nPolicy No: POL3949245\nPolicyholder: Ramesh Pillai\nClaimant (spouse): Amit Deshpande\nHospital: City Care Hospital, admitted 27/07/2026\nAddress: No. 224, 5th Cross, Kothrud, Pune - 411096\nContact: 8466259552, amit.deshpande83@outlook.com\nAadhaar: 928743152740\nBank UTR: 969031279570\nPassport (overseas cover): K4230027\nNote: Mr. Pillai requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 98,
+    "value": "Ramesh Pillai"
+   },
+   {
+    "type": "PERSON",
+    "start": 118,
+    "end": 132,
+    "value": "Amit Deshpande"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 192,
+    "end": 234,
+    "value": "No. 224, 5th Cross, Kothrud, Pune - 411096"
+   },
+   {
+    "type": "PHONE",
+    "start": 244,
+    "end": 254,
+    "value": "8466259552"
+   },
+   {
+    "type": "EMAIL",
+    "start": 256,
+    "end": 284,
+    "value": "amit.deshpande83@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 294,
+    "end": 306,
+    "value": "928743152740"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 357,
+    "end": 365,
+    "value": "K4230027"
+   },
+   {
+    "type": "PERSON",
+    "start": 376,
+    "end": 382,
+    "value": "Pillai"
+   }
+  ]
+ },
+ {
+  "id": "DOC046",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-439320\nPolicy No: POL5161539\nPolicyholder: Naveen Saxena\nClaimant (spouse): Lakshmi B. Banerjee\nHospital: City Care Hospital, admitted 09/07/2026\nAddress: #69, 1th Main Road, Dadar West, Mumbai, 400097\nContact: 6193661000, lakshmi.b..banerjee40@gmail.com\nAadhaar: 6687 8339 1878\nBank UTR: 722414826633\nNote: Mr. Saxena requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 98,
+    "value": "Naveen Saxena"
+   },
+   {
+    "type": "PERSON",
+    "start": 118,
+    "end": 137,
+    "value": "Lakshmi B. Banerjee"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 197,
+    "end": 243,
+    "value": "#69, 1th Main Road, Dadar West, Mumbai, 400097"
+   },
+   {
+    "type": "PHONE",
+    "start": 253,
+    "end": 263,
+    "value": "6193661000"
+   },
+   {
+    "type": "EMAIL",
+    "start": 265,
+    "end": 296,
+    "value": "lakshmi.b..banerjee40@gmail.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 306,
+    "end": 320,
+    "value": "6687 8339 1878"
+   },
+   {
+    "type": "PERSON",
+    "start": 354,
+    "end": 360,
+    "value": "Saxena"
+   }
+  ]
+ },
+ {
+  "id": "DOC047",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-995993\nPolicy No: POL9729882\nPolicyholder: Bhavana R. Khan\nClaimant (son): Sunita Kulkarni\nHospital: City Care Hospital, admitted 04/11/2026\nAddress: Flat 126B, Green Apartments, Powai, Mumbai 400075\nContact: 9923907567, sunita.kulkarni72@yahoo.in\nAadhaar: 6064 0391 0659\nBank UTR: 619406611023\n",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 100,
+    "value": "Bhavana R. Khan"
+   },
+   {
+    "type": "PERSON",
+    "start": 117,
+    "end": 132,
+    "value": "Sunita Kulkarni"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 192,
+    "end": 241,
+    "value": "Flat 126B, Green Apartments, Powai, Mumbai 400075"
+   },
+   {
+    "type": "PHONE",
+    "start": 251,
+    "end": 261,
+    "value": "9923907567"
+   },
+   {
+    "type": "EMAIL",
+    "start": 263,
+    "end": 289,
+    "value": "sunita.kulkarni72@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 299,
+    "end": 313,
+    "value": "6064 0391 0659"
+   }
+  ]
+ },
+ {
+  "id": "DOC048",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-570325\nPolicy No: POL7333337\nPolicyholder: Mahesh B. Banerjee\nClaimant (son): Mahesh Shetty\nHospital: City Care Hospital, admitted 03/11/2026\nAddress: Flat 221B, Sai Apartments, Salt Lake, Kolkata 700084\nContact: 7005699113, mahesh.shetty3@yahoo.in\nAadhaar: 2069 0331 1907\nBank UTR: 912799944114\n",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 103,
+    "value": "Mahesh B. Banerjee"
+   },
+   {
+    "type": "PERSON",
+    "start": 120,
+    "end": 133,
+    "value": "Mahesh Shetty"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 193,
+    "end": 245,
+    "value": "Flat 221B, Sai Apartments, Salt Lake, Kolkata 700084"
+   },
+   {
+    "type": "PHONE",
+    "start": 255,
+    "end": 265,
+    "value": "7005699113"
+   },
+   {
+    "type": "EMAIL",
+    "start": 267,
+    "end": 290,
+    "value": "mahesh.shetty3@yahoo.in"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 300,
+    "end": 314,
+    "value": "2069 0331 1907"
+   }
+  ]
+ },
+ {
+  "id": "DOC049",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2026-403314\nPolicy No: POL4928578\nPolicyholder: Prakash B. Acharya\nClaimant (self): Suresh Banerjee\nHospital: City Care Hospital, admitted 19/06/2026\nAddress: Flat 173B, Sai Apartments, Maninagar, Ahmedabad 380099\nContact: 8099872970, suresh.banerjee76@outlook.com\nAadhaar: 7287 3342 7086\nBank UTR: 367956219484\nPassport (overseas cover): J4432882\n",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 103,
+    "value": "Prakash B. Acharya"
+   },
+   {
+    "type": "PERSON",
+    "start": 121,
+    "end": 136,
+    "value": "Suresh Banerjee"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 196,
+    "end": 250,
+    "value": "Flat 173B, Sai Apartments, Maninagar, Ahmedabad 380099"
+   },
+   {
+    "type": "PHONE",
+    "start": 260,
+    "end": 270,
+    "value": "8099872970"
+   },
+   {
+    "type": "EMAIL",
+    "start": 272,
+    "end": 301,
+    "value": "suresh.banerjee76@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 311,
+    "end": 325,
+    "value": "7287 3342 7086"
+   },
+   {
+    "type": "PASSPORT",
+    "start": 376,
+    "end": 384,
+    "value": "J4432882"
+   }
+  ]
+ },
+ {
+  "id": "DOC050",
+  "doc_type": "insurance_claim",
+  "text": "INSURANCE CLAIM INTAKE\nClaim No: CLM-2025-495489\nPolicy No: POL1663497\nPolicyholder: Pooja Reddy\nClaimant (spouse): Basavaraj Kumar\nHospital: City Care Hospital, admitted 07/10/2026\nAddress: No. 54, 6th Cross, Salt Lake, Kolkata - 700062\nContact: 9397491177, basavaraj.kumar78@outlook.com\nAadhaar: 5638-5467-8543\nBank UTR: 209375654650\nNote: Mr. Reddy requested cashless settlement.",
+  "entities": [
+   {
+    "type": "PERSON",
+    "start": 85,
+    "end": 96,
+    "value": "Pooja Reddy"
+   },
+   {
+    "type": "PERSON",
+    "start": 116,
+    "end": 131,
+    "value": "Basavaraj Kumar"
+   },
+   {
+    "type": "ADDRESS",
+    "start": 191,
+    "end": 237,
+    "value": "No. 54, 6th Cross, Salt Lake, Kolkata - 700062"
+   },
+   {
+    "type": "PHONE",
+    "start": 247,
+    "end": 257,
+    "value": "9397491177"
+   },
+   {
+    "type": "EMAIL",
+    "start": 259,
+    "end": 288,
+    "value": "basavaraj.kumar78@outlook.com"
+   },
+   {
+    "type": "AADHAAR",
+    "start": 298,
+    "end": 312,
+    "value": "5638-5467-8543"
+   },
+   {
+    "type": "PERSON",
+    "start": 346,
+    "end": 351,
+    "value": "Reddy"
+   }
+  ]
+ }
+]
