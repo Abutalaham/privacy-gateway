@@ -32,9 +32,37 @@ npm --prefix frontend exec -- supabase --version # Supabase CLI (local dev depen
 export ANTHROPIC_API_KEY=...  PG_LLM_PROVIDER=anthropic   # real external LLM (or OPENAI_API_KEY + openai)
 ```
 The React app reads `VITE_API_URL` (defaults to `http://localhost:8000`); copy
-`frontend/.env.example` to `frontend/.env.local` to override it. The API currently
-allows cross-origin requests from any origin for local development. Restrict
-`allow_origins` in `gateway/api.py` before deploying it.
+`frontend/.env.example` to `frontend/.env.local` to override it. CORS is restricted
+to the local Vite origins by default. Set `PG_CORS_ORIGINS` to a comma-separated
+list of trusted frontend origins when deploying.
+
+## Document processing
+The React dashboard accepts PDF, DOCX, and UTF-8 TXT files. The FastAPI service
+extracts and analyzes text, returns a sanitized preview for user review, then
+processes the document only after the user submits a task. Uploads are limited by
+`PG_MAX_UPLOAD_BYTES` (10 MiB by default) and extracted text by
+`PG_MAX_DOCUMENT_CHARS` (1,000,000 characters by default); PDF pages are capped
+by `PG_MAX_DOCUMENT_PAGES` (500 by default).
+
+Document text is held in an in-memory cache for `PG_DOCUMENT_TTL_SECONDS` (15
+minutes by default), capped at `PG_MAX_ACTIVE_DOCUMENTS` sessions. The upload
+response includes a random, per-upload bearer capability; the frontend holds it
+in memory and sends it to the document analyze/status/process endpoints. A
+different document token cannot access the session. The PII restoration mapping
+is created only within the existing process call, never persisted or returned;
+the final authorized response is restored locally. Audit rows store an opaque
+document ID, entity counts, and the sanitized outbound request, not the uploaded
+document or original values.
+
+Endpoints: `POST /v1/documents/upload`, `POST /v1/documents/analyze` (also
+`/sanitize`), `POST /v1/documents/process`, and
+`GET /v1/documents/{document_id}/status`. `GET /v1/providers` reports configured
+provider/model names and key availability without exposing credentials. Local
+document sessions are process-memory scoped: use one API worker, or add shared
+encrypted storage and user authentication before running a multi-worker or
+multi-user production deployment. Scanned/image-only PDFs need OCR and are not
+currently text-extracted. Use HTTPS in deployment. PII detection is best-effort
+and does not guarantee complete anonymization.
 
 ## Supabase audit storage
 SQLite remains the default. To store audit records in Supabase, apply the migration
@@ -68,6 +96,7 @@ project never crashes on a machine without Presidio - **for judging, make sure i
 |---|---|
 | `gateway/recognizers.py` | One spec list (regex, base score, context words, checksum validator) feeding Presidio `PatternRecognizer`s |
 | `gateway/checksums.py` | Verhoeff (Aadhaar) and mod-36 (GSTIN) |
+| `gateway/documents.py` | Bounded PDF/DOCX/TXT extraction and expiring in-memory document sessions |
 | `gateway/ner_rules.py` | Names/addresses: cue words (`name is`, `mera naam`, `nanna hesaru`, `S/o`, `Mr.`), `ji/garu` suffixes, gazetteer, PIN-code address patterns |
 | `gateway/detector.py` | Builds the Presidio `AnalyzerEngine` (India recognizers + rules + spaCy + optional GLiNER), negative-context filter (`UTR`, `Policy`), overlap resolution |
 | `gateway/masking.py` | `Vault`: consistent placeholders, safe surname aliasing, FPE tokens, residual re-scan, final leak gate |

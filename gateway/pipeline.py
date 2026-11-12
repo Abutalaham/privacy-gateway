@@ -90,11 +90,38 @@ class PrivacyGateway:
         t_mask = (time.perf_counter() - t) * 1000
         return ents + extra_all, sanitized, vault, [], {"detect_ms": t_detect, "mask_ms": t_mask}
 
+    def _sanitize_fragment(self, text: str, purpose: str, vault: Vault):
+        policy = get_policy(purpose)
+        entities = self.detector.detect(text)
+        blocked = sorted({e.label for e in entities if policy.action(e.label) == "block"})
+        if blocked:
+            return entities, None, blocked
+        sanitized = apply_masks(text, entities, policy, vault)
+        extra: List[Entity] = []
+        for _ in range(self.MAX_ROUNDS):
+            spans = vault.token_spans(sanitized)
+            again = [e for e in self.detector.detect(sanitized)
+                     if not any(e.start < b and e.end > a for a, b in spans)]
+            again = resolve_overlaps(again + vault.residual_entities(sanitized))
+            if not again:
+                break
+            for entity in again:
+                entity.pass_no, entity.source = 2, entity.source + "+recheck"
+            if any(policy.action(e.label) == "block" for e in again):
+                return entities + extra + again, None, sorted({
+                    e.label for e in again if policy.action(e.label) == "block"
+                })
+            sanitized = apply_masks(sanitized, again, policy, vault)
+            extra += again
+        return entities + extra, sanitized, []
+
     # ---- full request --------------------------------------------------------------
     def process(self, text: str, *, task: str = "summarize", purpose: str = "default",
-                doc_type: Optional[str] = None, instructions: Optional[str] = None) -> GatewayResult:
+                doc_type: Optional[str] = None, instructions: Optional[str] = None,
+                document_id: Optional[str] = None, router: Optional[LLMRouter] = None) -> GatewayResult:
         rid, t0 = uuid.uuid4().hex[:12], time.perf_counter()
-        base = dict(request_id=rid, purpose=purpose, doc_type=doc_type, task=task, detection_engine=self.detector.engine)
+        base = dict(request_id=rid, document_id=document_id or rid, purpose=purpose, doc_type=doc_type,
+                    task=task, detection_engine=self.detector.engine)
         ents, sanitized, vault, blocked, tm = self.sanitize(text, purpose)
         counts: Dict[str, int] = {}
         for e in ents:
@@ -102,7 +129,28 @@ class PrivacyGateway:
         if blocked:
             self.audit.write(**base, status="BLOCKED_BY_POLICY", entity_types=counts, error=f"blocked labels: {blocked}",
                              leak_check={"checked": 0, "leaks": 0}, outbound_payload="(nothing sent)")
+            vault.wipe()
             raise PolicyBlocked(blocked, rid)
+
+        safe_instructions = instructions
+        instruction_entities: List[Entity] = []
+        instruction_ms = 0.0
+        if instructions:
+            t = time.perf_counter()
+            instruction_entities, safe_instructions, instruction_blocked = self._sanitize_fragment(
+                instructions, purpose, vault,
+            )
+            instruction_ms = (time.perf_counter() - t) * 1000
+            if instruction_blocked:
+                for e in instruction_entities:
+                    counts[e.label] = counts.get(e.label, 0) + 1
+                self.audit.write(**base, status="BLOCKED_BY_POLICY", entity_types=counts,
+                                 error=f"blocked labels: {instruction_blocked}",
+                                 leak_check={"checked": 0, "leaks": 0}, outbound_payload="(nothing sent)")
+                vault.wipe()
+                raise PolicyBlocked(instruction_blocked, rid)
+            for e in instruction_entities:
+                counts[e.label] = counts.get(e.label, 0) + 1
 
         def verify(body: str):
             leaks = vault.leaks_in(body)
@@ -111,14 +159,16 @@ class PrivacyGateway:
 
         t = time.perf_counter()
         try:
-            llm_text, backend, attempts = self.router.call(sanitized, task, instructions, verify)
+            llm_text, backend, attempts = (router or self.router).call(sanitized, task, safe_instructions, verify)
         except LeakDetected as exc:
             self.audit.write(**base, status="BLOCKED_LEAK", entity_types=counts, error=str(exc),
                              leak_check={"leaks": len(exc.leaks)}, outbound_payload="(blocked before sending)")
+            vault.wipe()
             raise
         except AllBackendsFailed as exc:
             self.audit.write(**base, status="LLM_UNAVAILABLE", entity_types=counts, error=str(exc),
                              leak_check={"leaks": 0}, outbound_payload=sanitized)
+            vault.wipe()
             raise
         t_llm = (time.perf_counter() - t) * 1000
 
@@ -128,7 +178,7 @@ class PrivacyGateway:
 
         used = attempts[-1]
         mapping = {p: v for p, v in vault.ph2val.items()}
-        timings = {**tm, "llm_ms": t_llm, "reinsert_ms": t_re}
+        timings = {**tm, "instructions_ms": instruction_ms, "llm_ms": t_llm, "reinsert_ms": t_re}
         entity_report = [{"label": e.label, "placeholder": e.placeholder, "action": e.action, "start": e.start,
                           "end": e.end, "score": round(e.score, 2), "source": e.source, "pass": e.pass_no} for e in ents]
         leak_check = {"values_checked": len(vault.originals()), "leaks": 0, "outbound_sha256": used.payload_sha256}
@@ -154,12 +204,25 @@ class PrivacyGateway:
 def build_default_gateway(provider: Optional[str] = None, fallback: Optional[str] = None,
                           mock_mode: str = "rotate", db_path: Optional[str] = None,
                           detector: Optional[Detector] = None) -> PrivacyGateway:
+    from .llm import LocalExtractiveBackend
+    chain = build_default_router(provider, fallback, mock_mode).backends
+    audit = AuditLog(db_path) if db_path is not None else build_audit_log()
+    return PrivacyGateway(detector or Detector(), LLMRouter(chain), audit)
+
+
+def build_default_router(provider: Optional[str] = None, fallback: Optional[str] = None,
+                         mock_mode: str = "rotate") -> LLMRouter:
     from .llm import LocalExtractiveBackend, OllamaBackend, build_backend
-    chain = [build_backend(provider or config.LLM_PROVIDER, mock_mode)]
+
+    provider_name = (provider or config.LLM_PROVIDER).lower()
+    if provider_name not in {"anthropic", "openai", "ollama", "local", "mock"}:
+        raise ValueError(f"Unknown LLM provider '{provider_name}'.")
+    chain = [build_backend(provider_name, mock_mode)]
     fb = (fallback or config.FALLBACK).lower()
     if fb == "ollama":
         chain += [OllamaBackend(), LocalExtractiveBackend()]
     elif fb == "local":
         chain += [LocalExtractiveBackend()]
-    audit = AuditLog(db_path) if db_path is not None else build_audit_log()
-    return PrivacyGateway(detector or Detector(), LLMRouter(chain), audit)
+    elif fb != "none":
+        raise ValueError(f"Unknown fallback provider '{fb}'.")
+    return LLMRouter(chain)

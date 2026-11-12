@@ -81,6 +81,10 @@ export const entityColors: Record<string, string> = {
   PASSPORT: "entity-passport",
   PHONE: "entity-phone",
   EMAIL: "entity-email",
+  CREDIT_CARD: "entity-aadhaar",
+  BANK_ACCOUNT: "entity-phone",
+  IP_ADDRESS: "entity-address",
+  DATE_OF_BIRTH: "entity-passport",
 };
 
 export const metricsFallback = {

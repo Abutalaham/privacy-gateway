@@ -11,13 +11,15 @@ import json
 import sqlite3
 import threading
 import time
+from contextlib import contextmanager
 from typing import List, Optional
 
 from . import config
 
-COLUMNS = ["request_id", "created_at", "purpose", "doc_type", "task", "status", "entity_types", "placeholders",
+LEGACY_COLUMNS = ["request_id", "created_at", "purpose", "doc_type", "task", "status", "entity_types", "placeholders",
            "provider", "model", "external", "fallback_used", "outbound_payload", "outbound_sha256",
            "leak_check", "attempts", "timings", "detection_engine", "error", "prev_hash", "record_hash"]
+COLUMNS = LEGACY_COLUMNS[:1] + ["document_id"] + LEGACY_COLUMNS[1:]
 
 
 def serialize_record(rec: dict) -> dict:
@@ -41,7 +43,12 @@ def verify_records(records: List[dict]) -> bool:
     for record in records:
         body = {column: record[column] for column in COLUMNS if column not in ("prev_hash", "record_hash")}
         body["prev_hash"] = prev
-        if record["prev_hash"] != prev or hash_record(body) != record["record_hash"]:
+        valid_hash = hash_record(body) == record["record_hash"]
+        if not valid_hash and not record.get("document_id"):
+            legacy = {column: record[column] for column in LEGACY_COLUMNS if column not in ("prev_hash", "record_hash")}
+            legacy["prev_hash"] = prev
+            valid_hash = hash_record(legacy) == record["record_hash"]
+        if record["prev_hash"] != prev or not valid_hash:
             return False
         prev = record["record_hash"]
     return True
@@ -53,9 +60,21 @@ class AuditLog:
         with self._conn() as c:
             c.execute(f"CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, "
                       + ", ".join(f"{col} TEXT" for col in COLUMNS) + ")")
+            columns = {row[1] for row in c.execute("PRAGMA table_info(audit_log)")}
+            if "document_id" not in columns:
+                c.execute("ALTER TABLE audit_log ADD COLUMN document_id TEXT NOT NULL DEFAULT ''")
 
+    @contextmanager
     def _conn(self):
-        return sqlite3.connect(self.path, check_same_thread=False)
+        connection = sqlite3.connect(self.path, check_same_thread=False)
+        try:
+            yield connection
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
     def write(self, **rec) -> str:
         rec.setdefault("created_at", time.strftime("%Y-%m-%dT%H:%M:%S%z"))

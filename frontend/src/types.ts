@@ -28,6 +28,31 @@ export type ProcessResult = {
   detection_engine?: string;
 };
 
+export type UploadedDocument = {
+  document_id: string;
+  access_token: string;
+  file_name: string;
+  size_bytes: number;
+  extracted_text: string;
+  expires_in_seconds: number;
+  status: string;
+};
+
+export type DocumentAnalysis = {
+  document_id: string;
+  sanitized_text: string;
+  detection_engine: string;
+  timings: Record<string, number>;
+  entity_count: number;
+  entities: Array<Omit<Entity, "source"> & { source?: string; value: string }>;
+};
+
+export type ProviderOption = {
+  id: string;
+  model: string;
+  available: boolean;
+};
+
 export type Attempt = {
   provider: string;
   model: string;
@@ -47,6 +72,7 @@ export type Policy = {
 
 export type AuditRecord = Record<string, string> & {
   request_id: string;
+  document_id?: string;
   created_at: string;
   purpose: string;
   status: string;

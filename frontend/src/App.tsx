@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Activity, AlertTriangle, ArrowDownToLine, Check, CheckCircle2, ChevronDown, ChevronRight,
-  CircleHelp, Clipboard, Clock3, FileText, Fingerprint, LockKeyholeOpen, Network, RotateCw,
-  Shield, ShieldAlert, ShieldCheck, Sparkles, X,
+  CircleHelp, Clipboard, Clock3, CloudUpload, Download, FileCheck2, FileText, Fingerprint,
+  LockKeyholeOpen, Network, RotateCw, Shield, ShieldAlert, ShieldCheck, Sparkles, X,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { api, getApiUrl } from "./api";
 import { entityColors, fallbackPolicies, metricsFallback, samples } from "./data";
-import type { AuditRecord, Entity, GatewayError, Metrics, Policy, ProcessResult } from "./types";
+import type {
+  AuditRecord, DocumentAnalysis, Entity, GatewayError, Metrics, Policy, ProcessResult, ProviderOption, UploadedDocument,
+} from "./types";
 
 type GatewayFailure = { kind: "blocked" | "leak" | "unavailable"; message: string; requestId?: string; labels?: string[] };
 type Span = { start: number; end: number; label: string; placeholder: string; value: string };
@@ -32,6 +34,12 @@ function parseJson<T>(value: string | undefined, fallback: T): T {
 
 function entityClass(label: string) {
   return entityColors[label] ?? "entity-default";
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function getSpans(text: string, entities: Entity[]): Span[] {
@@ -228,8 +236,11 @@ function App() {
   const [sampleId, setSampleId] = useState(samples[0].id);
   const [task, setTask] = useState<"summarize" | "extract">("summarize");
   const [purpose, setPurpose] = useState("default");
+  const [instructions, setInstructions] = useState("");
+  const [provider, setProvider] = useState("");
+  const [providerOptions, setProviderOptions] = useState<ProviderOption[]>([]);
   const [policies, setPolicies] = useState<Record<string, Policy>>(fallbackPolicies);
-  const [health, setHealth] = useState<{ detection_engine: string; backends: string[] } | null>(null);
+  const [health, setHealth] = useState<{ detection_engine: string; backends: string[]; max_upload_bytes?: number } | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(metricsFallback);
   const [result, setResult] = useState<ProcessResult | null>(null);
   const [failure, setFailure] = useState<GatewayFailure | null>(null);
@@ -243,9 +254,15 @@ function App() {
   const [requestOpen, setRequestOpen] = useState(false);
   const [attemptsOpen, setAttemptsOpen] = useState(false);
   const [activePlaceholder, setActivePlaceholder] = useState<string | null>(null);
+  const [uploadedDocument, setUploadedDocument] = useState<UploadedDocument | null>(null);
+  const [documentAnalysis, setDocumentAnalysis] = useState<DocumentAnalysis | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [draggingFile, setDraggingFile] = useState(false);
   const stageTimer = useRef<number | null>(null);
   const toastTimer = useRef<number | null>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
 
   const activePolicy = policies[purpose] ?? fallbackPolicies[purpose] ?? policies.default;
   const spans = useMemo(() => result ? getSpans(text, result.entities) : [], [result, text]);
@@ -253,6 +270,15 @@ function App() {
   const outboundLeaks = useMemo(() => result
     ? originalValues.filter((value) => normalize(value).length >= 4 && normalize(result.outbound_payload).includes(normalize(value)))
     : [], [originalValues, result]);
+  const dashboardStats = useMemo(() => {
+    const records = audit?.records ?? [];
+    const successful = records.filter((record) => record.status === "OK" || record.status === "OK_FALLBACK");
+    const documents = successful.filter((record) => record.doc_type?.startsWith("upload:"));
+    const entities = records.reduce((sum, record) => sum + Object.values(
+      parseJson<Record<string, number>>(record.entity_types, {}),
+    ).reduce((count, value) => count + value, 0), 0);
+    return { documents: documents.length, entities, requests: records.length };
+  }, [audit]);
 
   const notify = useCallback((message: string) => {
     setToast(message);
@@ -267,6 +293,10 @@ function App() {
 
   useEffect(() => {
     api.health().then(setHealth).catch(() => setHealth(null));
+    api.providers().then((data) => {
+      setProviderOptions(data.providers);
+      setProvider(data.default);
+    }).catch(() => undefined);
     api.policies().then(setPolicies).catch(() => undefined);
     api.metrics().then(setMetrics).catch(() => undefined);
     refreshAudit().catch(() => setAudit(null));
@@ -296,6 +326,82 @@ function App() {
     }
   }
 
+  async function uploadFile(file?: File) {
+    if (!file || uploading || busy) return;
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const maxBytes = health?.max_upload_bytes ?? 10 * 1024 * 1024;
+    if (!["pdf", "docx", "txt"].includes(extension ?? "")) {
+      notify("Unsupported file. Choose a PDF, DOCX, or TXT document.");
+      return;
+    }
+    if (file.size > maxBytes) {
+      notify(`File exceeds the ${formatBytes(maxBytes)} upload limit.`);
+      return;
+    }
+    setUploading(true);
+    setUploadProgress(0);
+    setResult(null);
+    setFailure(null);
+    setDocumentAnalysis(null);
+    setUploadedDocument(null);
+    try {
+      const uploaded = await api.uploadDocument(file, setUploadProgress);
+      setUploadedDocument(uploaded);
+      setText(uploaded.extracted_text);
+      setSampleId("custom");
+      setUploadProgress(100);
+      const analysis = await api.analyzeDocument(uploaded.document_id, uploaded.access_token, purpose);
+      setDocumentAnalysis(analysis);
+      notify("Document extracted and sanitized for review.");
+    } catch (error) {
+      setUploadedDocument(null);
+      if (isGatewayError(error)) {
+        const detail = typeof error.detail === "string" ? error.detail : errorDetail(error).detail;
+        notify(typeof detail === "string" ? detail : `Document upload failed (${error.status}).`);
+      } else {
+        notify(error instanceof Error ? error.message : "Could not upload this document.");
+      }
+    } finally {
+      setUploading(false);
+      if (uploadRef.current) uploadRef.current.value = "";
+    }
+  }
+
+  function clearUploadedDocument() {
+    setUploadedDocument(null);
+    setDocumentAnalysis(null);
+    setText("");
+    setSampleId("custom");
+    setResult(null);
+    setFailure(null);
+  }
+
+  async function changePurpose(nextPurpose: string) {
+    setPurpose(nextPurpose);
+    setResult(null);
+    if (!uploadedDocument) {
+      setDocumentAnalysis(null);
+      return;
+    }
+    try {
+      setDocumentAnalysis(await api.analyzeDocument(
+        uploadedDocument.document_id, uploadedDocument.access_token, nextPurpose,
+      ));
+    } catch (error) {
+      setDocumentAnalysis(null);
+      notify(isGatewayError(error) ? `Analysis failed (${error.status}).` : "Could not re-analyze the document.");
+    }
+  }
+
+  function downloadText(value: string, filename: string) {
+    const url = URL.createObjectURL(new Blob([value], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function runGateway() {
     if (!text.trim() || busy) return;
     setBusy(true);
@@ -305,8 +411,18 @@ function App() {
     stageTimer.current = window.setInterval(() => setStage((current) => Math.min(current + 1, 3)), 650);
     try {
       const selectedSample = samples.find((sample) => sample.id === sampleId);
-      const body = { text, task, purpose, ...(selectedSample && sampleId !== "custom" ? { doc_type: selectedSample.docType } : {}) };
-      const next = demoMode ? makeMockResult(text, task, purpose, body.doc_type) : await api.process(body);
+      const body = {
+        text, task, purpose, instructions: instructions || undefined, provider: provider || undefined,
+        ...(selectedSample && sampleId !== "custom" ? { doc_type: selectedSample.docType } : {}),
+      };
+      const next = demoMode
+        ? makeMockResult(text, task, purpose, body.doc_type)
+        : uploadedDocument
+          ? await api.processDocument({
+            document_id: uploadedDocument.document_id, task, purpose,
+            instructions: instructions || undefined, provider: provider || undefined,
+          }, uploadedDocument.access_token)
+          : await api.process(body);
       setStage(3);
       setResult(next);
       await refreshAudit().catch(() => undefined);
@@ -347,6 +463,8 @@ function App() {
     if (selected) setText(selected.text);
     setResult(null);
     setFailure(null);
+    setUploadedDocument(null);
+    setDocumentAnalysis(null);
   }
 
   const healthBackends = health?.backends?.join(", ") || "backend offline";
@@ -371,6 +489,12 @@ function App() {
           <span className="brand-icon"><Shield size={21} strokeWidth={2.2} /></span>
           <span className="brand-text">DPDP <strong>Privacy Gateway</strong></span>
         </a>
+        <nav className="topbar-nav" aria-label="Workspace sections">
+          <a href="#overview">Overview</a>
+          <a href="#document-intake">Documents</a>
+          <a href="#processing">Processing</a>
+          <a href="#governance">Governance</a>
+        </nav>
         <div className="topbar-status">
           <span className={`status-badge ${health ? "online" : "offline"}`}><span className="status-dot" />{health ? "Gateway connected" : "Gateway offline"}</span>
           <span className="engine-badge"><Fingerprint size={14} />{health?.detection_engine ?? "engine unavailable"}</span>
@@ -409,7 +533,63 @@ function App() {
           </div>
         </section>
 
-        <section className="control-panel">
+        <section id="overview" className="dashboard-stats" aria-label="Recent gateway activity">
+          <div><span>DOCUMENTS PROCESSED</span><strong>{dashboardStats.documents}</strong><small>within recent audit history</small></div>
+          <div><span>PII ENTITIES DETECTED</span><strong>{dashboardStats.entities}</strong><small>across recent requests</small></div>
+          <div><span>AI REQUESTS</span><strong>{dashboardStats.requests}</strong><small>recorded in the audit log</small></div>
+          <div><span>RECENT ACTIVITY</span><strong>{audit?.records[0]?.status ?? "—"}</strong><small>{audit?.records[0]?.created_at ? new Date(audit.records[0].created_at).toLocaleString() : "No requests yet"}</small></div>
+        </section>
+
+        <section id="document-intake" className="document-upload-panel">
+          <div className="upload-heading">
+            <div><span className="control-kicker">PRIVATE DOCUMENT INTAKE</span><h2>Upload a document</h2></div>
+            <span className="input-assurance"><LockKeyholeOpen size={13} /> Stored in gateway memory for up to 15 minutes</span>
+          </div>
+          <div
+            className={`drop-zone ${draggingFile ? "drop-zone-active" : ""} ${uploading ? "drop-zone-busy" : ""}`}
+            onDragOver={(event) => { event.preventDefault(); setDraggingFile(true); }}
+            onDragLeave={() => setDraggingFile(false)}
+            onDrop={(event) => { event.preventDefault(); setDraggingFile(false); void uploadFile(event.dataTransfer.files[0]); }}
+          >
+            <input ref={uploadRef} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onChange={(event) => void uploadFile(event.target.files?.[0])} hidden />
+            <span className="upload-icon"><CloudUpload size={23} /></span>
+            <div className="drop-copy"><strong>{uploading ? "Uploading and extracting…" : "Drop a PDF, DOCX, or TXT file here"}</strong><span>Maximum {formatBytes(health?.max_upload_bytes ?? 10 * 1024 * 1024)} · text is extracted locally by the gateway</span></div>
+            <button className="outline-button" type="button" onClick={() => uploadRef.current?.click()} disabled={uploading}>Browse files</button>
+          </div>
+          {uploading && <div className="upload-progress" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
+            <span style={{ width: `${uploadProgress}%` }} /><b>{uploadProgress}%</b>
+          </div>}
+          {uploadedDocument && <div className="uploaded-file">
+            <FileCheck2 size={17} />
+            <span><strong>{uploadedDocument.file_name}</strong><small>{formatBytes(uploadedDocument.size_bytes)} · expires in {Math.ceil(uploadedDocument.expires_in_seconds / 60)} min</small></span>
+            <button className="icon-button" onClick={clearUploadedDocument} aria-label="Clear uploaded document"><X size={15} /></button>
+          </div>}
+          <div className="upload-support">Supported formats: PDF · DOCX · TXT <span>Files are not written to disk or included in audit logs.</span></div>
+        </section>
+
+        {documentAnalysis && !result && <section className="document-review">
+          <div className="review-heading"><div><span className="control-kicker">PRIVACY ANALYSIS</span><h2>Review extracted and sanitized text</h2></div>
+            <div className="review-actions"><span className="entity-count">{documentAnalysis.entity_count} entities · {documentAnalysis.detection_engine}</span>
+              <button className="outline-button" onClick={() => downloadText(documentAnalysis.sanitized_text, "sanitized-document.txt")}><Download size={13} /> Download sanitized</button>
+            </div>
+          </div>
+          <div className="review-grid">
+            <div><h3>Extracted original <small>authorized preview</small></h3><pre>{text}</pre></div>
+            <div><h3>Sanitized preview <small>only this content is sent to AI</small></h3><pre>{documentAnalysis.sanitized_text}</pre></div>
+          </div>
+          <div className="entity-table-wrap review-entities"><table className="entity-table">
+            <thead><tr><th>CATEGORY</th><th>ORIGINAL VALUE</th><th>PLACEHOLDER</th><th>CONFIDENCE</th><th>POSITION</th></tr></thead>
+            <tbody>{documentAnalysis.entities.map((entity, index) => <tr key={`${entity.placeholder}-${index}`}>
+              <td><span className="entity-type">{entity.label}</span></td><td>{entity.value}</td>
+              <td><span className={`mini-token ${entityClass(entity.label)}`}>{entity.placeholder}</span></td>
+              <td>{Math.round(entity.score * 100)}%</td>
+              <td>{entity.start}–{entity.end} ({entity.pass === 1 ? "original" : "sanitized"})</td>
+            </tr>)}</tbody>
+          </table></div>
+          <p className="review-disclaimer">Detection is best-effort and does not guarantee complete anonymization. Review the sanitized text before processing.</p>
+        </section>}
+
+        <section id="processing" className="control-panel">
           <div className="control-heading">
             <div><span className="control-kicker">NEW SECURE REQUEST</span><h2>Choose what to process</h2></div>
             <span className="input-assurance"><LockKeyholeOpen size={13} /> Your original input never leaves the gateway</span>
@@ -424,7 +604,7 @@ function App() {
             </label>
             <label className="field-group purpose-field">
               <span className="field-label">PROCESSING PURPOSE</span>
-              <span className="select-wrap"><select value={purpose} onChange={(event) => { setPurpose(event.target.value); setResult(null); }}>
+              <span className="select-wrap"><select value={purpose} onChange={(event) => void changePurpose(event.target.value)}>
                 {Object.keys(policies).map((name) => <option key={name} value={name}>{name.replaceAll("_", " ")}</option>)}
               </select><ChevronDown size={15} /></span>
               <span className="purpose-description">{activePolicy?.description ?? "Select a purpose policy for this request."}</span>
@@ -436,11 +616,22 @@ function App() {
                 <button className={task === "extract" ? "selected" : ""} onClick={() => setTask("extract")}>Extract</button>
               </div>
             </div>
+            <label className="field-group provider-field">
+              <span className="field-label">AI PROVIDER / MODEL</span>
+              <span className="select-wrap"><select value={provider} onChange={(event) => setProvider(event.target.value)} aria-label="AI provider and model">
+                {providerOptions.map((option) => <option key={option.id} value={option.id}>{option.id} · {option.model}{option.available ? "" : " (key not set; fallback used)"}</option>)}
+                {!providerOptions.length && <option value="mock">mock · mock-llm-1</option>}
+              </select><ChevronDown size={15} /></span>
+            </label>
             <div className="run-cell">
-              <button className="primary-button" onClick={() => void runGateway()} disabled={busy || !text.trim()}>
+              <button className="primary-button" onClick={() => void runGateway()} disabled={busy || uploading || !text.trim()}>
                 {busy ? <><RotateCw className="spin" size={16} /> Processing…</> : <><ShieldCheck size={17} /> Run securely <span className="button-shortcut">⌘ ↵</span></>}
               </button>
             </div>
+            <label className="instruction-field">
+              <span className="field-label">QUESTION OR INSTRUCTION</span>
+              <textarea value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={2} placeholder="Ask a question about the document or leave blank for the selected task." />
+            </label>
           </div>
           <div className={`pipeline-status ${busy ? "pipeline-running" : ""} ${result ? "pipeline-complete" : ""} ${failure ? "pipeline-stopped" : ""}`} role="status" aria-live="polite">
             <div className="pipeline-heading"><span><Activity size={13} /> SECURE PROCESSING FLOW</span><b>{pipelineMessage}</b></div>
@@ -476,7 +667,7 @@ function App() {
             {result ? <div className="text-panel marked-text" aria-label="Original text with detected entities">
               {renderMarkedText(text, spans, activePlaceholder, setActivePlaceholder)}
             </div> : <div className="editor-wrap">
-              <textarea ref={editorRef} value={text} onChange={(event) => { setText(event.target.value); setSampleId("custom"); setFailure(null); }} placeholder="Paste or type sensitive text here…" aria-label="Original text" />
+              <textarea ref={editorRef} value={text} onChange={(event) => { setText(event.target.value); setSampleId("custom"); setUploadedDocument(null); setDocumentAnalysis(null); setFailure(null); }} placeholder="Paste or type sensitive text here…" aria-label="Original text" />
               <div className="editor-foot"><span><LockKeyholeOpen size={12} /> Local input · never sent directly</span><span>{text.length.toLocaleString()} chars</span></div>
             </div>}
           </article>
@@ -526,6 +717,16 @@ function App() {
                 <span><b>{result.reinsertion.dropped.length}</b> dropped by LLM</span><i />
                 <span><b>{result.reinsertion.unresolved.length}</b> unknown placeholders left untouched</span>
               </div>
+              <div className="response-actions">
+                <button className="outline-button" onClick={() => void copy(result.final_response, "Restored response")}><Clipboard size={13} /> Copy restored</button>
+                <button className="outline-button" onClick={() => downloadText(result.final_response, "privacy-gateway-response.txt")}><Download size={13} /> Download</button>
+                <button className="outline-button" onClick={() => void copy(result.llm_raw_response, "Sanitized AI response")}><Clipboard size={13} /> Copy sanitized AI response</button>
+                <button className="outline-button" onClick={() => downloadText(result.llm_raw_response, "sanitized-ai-response.txt")}><Download size={13} /> Download sanitized</button>
+              </div>
+              <details className="sanitized-response">
+                <summary>View sanitized AI response · placeholders intact</summary>
+                <pre>{result.llm_raw_response}</pre>
+              </details>
             </> : <div className="column-empty response-empty">
               <span className="empty-graphic empty-blue"><ArrowDownToLine size={22} /></span>
               <strong>Your private response lands here</strong>
@@ -570,7 +771,7 @@ function App() {
           </section>
         </div>}
 
-        <section className="workspace-tabs">
+        <section id="governance" className="workspace-tabs">
           <div className="tab-header" role="tablist">
             <button className={tab === "audit" ? "active" : ""} onClick={() => setTab("audit")} role="tab"><Activity size={15} /> Audit log {audit && <span className="tab-count">{audit.records.length}</span>}</button>
             <button className={tab === "metrics" ? "active" : ""} onClick={() => setTab("metrics")} role="tab"><Fingerprint size={15} /> Metrics report</button>
@@ -593,7 +794,7 @@ function App() {
         <aside className="audit-drawer" aria-label="Audit record details">
           <div className="drawer-header"><div><span className="eyebrow">AUDIT RECORD</span><h2>{selectedAudit.request_id}</h2></div><button className="icon-button" onClick={() => setSelectedAudit(null)} aria-label="Close audit details"><X size={18} /></button></div>
           <div className="drawer-fields">
-            {["created_at", "purpose", "status", "provider", "model", "detection_engine", "outbound_sha256", "error"].filter((key) => selectedAudit[key]).map((key) =>
+            {["created_at", "document_id", "purpose", "status", "provider", "model", "detection_engine", "outbound_sha256", "error"].filter((key) => selectedAudit[key]).map((key) =>
               <div className="drawer-field" key={key}><span>{key.replaceAll("_", " ")}</span><b>{selectedAudit[key]}</b></div>)}
           </div>
           <div className="drawer-section-title">Exact outbound payload</div>
@@ -612,11 +813,12 @@ function AuditTab({ audit, onOpen }: { audit: { chain_valid: boolean; records: A
     <div className="panel-title-row"><div><h3>Recent requests</h3><p>Immutable records of outbound payloads and model attempts.</p></div>
       <span className={`chain-badge ${audit?.chain_valid ? "chain-valid" : "chain-invalid"}`}>{audit?.chain_valid ? <CheckCircle2 size={14} /> : <ShieldAlert size={14} />}{audit ? (audit.chain_valid ? "Hash chain intact" : "Chain verification failed") : "Audit unavailable"}</span>
     </div>
-    <div className="table-scroll"><table className="audit-table"><thead><tr><th>REQUEST ID</th><th>TIME</th><th>PURPOSE</th><th>STATUS</th><th>PROVIDER / MODEL</th><th>ENTITIES</th><th>HASH</th></tr></thead>
+    <div className="table-scroll"><table className="audit-table"><thead><tr><th>REQUEST ID</th><th>DOCUMENT ID</th><th>TIME</th><th>PURPOSE</th><th>STATUS</th><th>PROVIDER / MODEL</th><th>ENTITIES</th><th>HASH</th></tr></thead>
       <tbody>{audit?.records.map((record) => {
         const counts = parseJson<Record<string, number>>(record.entity_types, {});
         return <tr key={record.request_id} onClick={() => onOpen(record.request_id)} tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") onOpen(record.request_id); }}>
           <td><button className="request-id" onClick={(event) => { event.stopPropagation(); onOpen(record.request_id); }}>{record.request_id}<ChevronRight size={12} /></button></td>
+          <td><code>{record.document_id?.slice(0, 12) || "—"}</code></td>
           <td>{record.created_at ? new Date(record.created_at).toLocaleString() : "—"}</td>
           <td>{record.purpose?.replaceAll("_", " ") || "—"}</td>
           <td><span className={`status-pill status-${(record.status || "").toLowerCase().replaceAll("_", "-")}`}>{record.status || "UNKNOWN"}</span></td>

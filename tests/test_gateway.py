@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.pop("ANTHROPIC_API_KEY", None)
@@ -53,6 +54,12 @@ class Detection(unittest.TestCase):
     def test_address_with_pin(self):
         t = "Address: No. 12, 4th Cross, Jayanagar, Bengaluru - 560011 and then more text."
         self.assertTrue(any(e.label == "ADDRESS" and e.text.endswith("560011") for e in DET.detect(t)))
+
+    def test_credit_card_bank_account_ip_and_dob(self):
+        text = ("Card number: 4111 1111 1111 1111. Bank account no: 123456789012. IFSC: SBIN0001234. "
+                "IP address: 203.0.113.8. DOB: 01/02/1990.")
+        labels = {entity.label for entity in DET.detect(text)}
+        self.assertTrue({"CREDIT_CARD", "BANK_ACCOUNT", "IP_ADDRESS", "DATE_OF_BIRTH"} <= labels)
 
 
 class Masking(unittest.TestCase):
@@ -115,10 +122,26 @@ class Reinsertion(unittest.TestCase):
 
 
 class Safety(unittest.TestCase):
-    def test_leak_gate_blocks_before_sending(self):
+    def test_instruction_pii_is_masked_before_sending(self):
+        r = gw().process(PS_EXAMPLE, instructions="Summarize Rahul Sharma and rahul.private@example.com.")
+        self.assertNotIn("Rahul Sharma", r.outbound_payload)
+        self.assertNotIn("rahul.private@example.com", r.outbound_payload)
+        self.assertIn("<PERSON_1>", r.outbound_payload)
+        self.assertIn("<EMAIL_1>", r.outbound_payload)
+
+    def test_final_leak_gate_blocks_tampered_provider_payload(self):
         g = gw()
-        with self.assertRaises(LeakDetected):                  # caller smuggles raw PII through the instructions field
-            g.process(PS_EXAMPLE, instructions="Summarize the file of Rahul Sharma")
+        backend = g.router.backends[0]
+        original_build = backend.build_request
+
+        def inject_original(*args, **kwargs):
+            request = original_build(*args, **kwargs)
+            request.body += b" Rahul Sharma"
+            return request
+
+        with patch.object(backend, "build_request", side_effect=inject_original):
+            with self.assertRaises(LeakDetected):
+                g.process(PS_EXAMPLE)
         self.assertEqual(g.audit.recent(1)[0]["status"], "BLOCKED_LEAK")
 
     def test_marketing_blocks_aadhaar(self):

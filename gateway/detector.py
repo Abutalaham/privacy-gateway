@@ -15,8 +15,10 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from . import config
-from .ner_rules import find_addresses, find_names
-from .recognizers import ENTITY_TO_LABEL, LABEL_CONTEXT, NEGATIVE_CONTEXT, SPECS
+from .ner_rules import STOP, find_addresses, find_names
+from .recognizers import (
+    ENTITY_TO_LABEL, LABEL_CONTEXT, NEGATIVE_CONTEXT, SPECS, find_bank_accounts, find_ip_addresses,
+)
 
 log = logging.getLogger("privacy_gateway.detector")
 ID_LABELS = {"AADHAAR", "PAN", "GSTIN", "VOTER_ID", "PASSPORT", "PHONE"}
@@ -88,6 +90,8 @@ def build_presidio_analyzer(gliner: Optional[GlinerFinder]):
         registry.add_recognizer(IndiaPatternRecognizer(spec))
     registry.add_recognizer(FunctionRecognizer(["PERSON"], find_names, "IndianNameRules"))
     registry.add_recognizer(FunctionRecognizer(["ADDRESS"], find_addresses, "IndianAddressRules"))
+    registry.add_recognizer(FunctionRecognizer(["BANK_ACCOUNT"], find_bank_accounts, "BankAccountContext"))
+    registry.add_recognizer(FunctionRecognizer(["IP_ADDRESS"], find_ip_addresses, "IPAddressValidator"))
     if gliner:
         registry.add_recognizer(FunctionRecognizer(["PERSON", "ADDRESS"], gliner, "GLiNER"))
     nlp = NlpEngineProvider(nlp_configuration={
@@ -130,6 +134,8 @@ def _fallback_analyze(text: str, gliner: Optional[GlinerFinder]):
                 if score < 1.0 and _context_hit(text, m.start(), spec.label):
                     score = max(score + 0.35, 0.4)
                 res.append((spec.label, m.start(), m.end(), min(score, 1.0), "regex"))
+    res += [(*r, "regex") for r in find_bank_accounts(text)]
+    res += [(*r, "regex") for r in find_ip_addresses(text)]
     for finder, src in ((find_names, "rules"), (find_addresses, "rules"), (gliner, "gliner")):
         if finder:
             res += [(*r, src) for r in finder(text)]
@@ -171,8 +177,13 @@ class Detector:
         for label, s, e, score, src in self._raw(text):
             span = text[s:e]
             if label == "PERSON" and "SpacyRecognizer" in src:
-                if any(w.lower() in __import__("gateway.ner_rules", fromlist=["STOP"]).STOP for w in span.split()):
+                tokens = list(re.finditer(r"\b[\w'-]+\b", span))
+                meaningful = [token for token in tokens if token.group().lower() not in STOP]
+                if not meaningful:
                     continue
+                s += meaningful[0].start()
+                e = s + meaningful[-1].end() - meaningful[0].start()
+                span = text[s:e]
             if label in ID_LABELS and score < 0.9 and _negated(text, s, label):
                 continue                                       # e.g. "UTR 402312345678", "Policy POL1234567"
             cands.append(Entity(label, s, e, score, span, src))

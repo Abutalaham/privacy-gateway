@@ -22,7 +22,8 @@ Voter GSTIN GST ID No Number Mr Mrs Ms Dr Shri Smt Sri Born Occupation Employer 
 Claimant Nominee Policyholder Borrower Subject Re KYC DOB Gender Male Female Verified By Manager Declaration Signature
 Place Application Form Record Proprietor Director Owner Guarantor Father Mother Spouse Full Permanent Current Residential
 Later Then Also After Before Today Yesterday Tomorrow Hence However Thus Finally Meanwhile Call Reach Send Check See Refer Attn Kindly
-UTR Incident Relation Limited Ltd Pvt Private Urgent Issue Problem Update Status Help Need Unable Not""".split()}
+UTR Incident Relation Limited Ltd Pvt Private Urgent Issue Problem Update Status Help Need Unable Not
+Summarize Summary Explain Tell Analyze Analyse Write Extract Describe Provide Find What Who Why How""".split()}
 
 _TOK = r"(?:[A-Z][a-z]{1,20}|[A-Z]{2,20}|[A-Z]\.)"
 _NAME = rf"({_TOK}(?:[ \t]+{_TOK}){{0,3}})"
