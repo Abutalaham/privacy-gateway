@@ -37,12 +37,18 @@ to the local Vite origins by default. Set `PG_CORS_ORIGINS` to a comma-separated
 list of trusted frontend origins when deploying.
 
 ## Document processing
-The React dashboard accepts PDF, DOCX, and UTF-8 TXT files. The FastAPI service
-extracts and analyzes text, returns a sanitized preview for user review, then
-processes the document only after the user submits a task. Uploads are limited by
+The React dashboard accepts PDF, DOCX, UTF-8 TXT, and PNG/JPEG/TIFF/BMP/WebP
+images. The FastAPI service extracts embedded PDF text and runs local OCR on
+image uploads and PDF pages without extractable text. OCR output enters the same
+PII analysis, sanitized preview, and masking workflow as other extracted text;
+the original image/PDF is never sent to an AI provider. OCR models run locally
+and do not call an external OCR service. Install the project requirements to
+enable OCR. Uploads are limited by
 `PG_MAX_UPLOAD_BYTES` (10 MiB by default) and extracted text by
 `PG_MAX_DOCUMENT_CHARS` (1,000,000 characters by default); PDF pages are capped
-by `PG_MAX_DOCUMENT_PAGES` (500 by default).
+by `PG_MAX_DOCUMENT_PAGES` (500 by default). OCR is capped at
+`PG_OCR_MAX_PAGES` (50 pages by default) and `PG_OCR_MAX_IMAGE_PIXELS`
+(25,000,000 pixels per page/image).
 
 Document text is held in an in-memory cache for `PG_DOCUMENT_TTL_SECONDS` (15
 minutes by default), capped at `PG_MAX_ACTIVE_DOCUMENTS` sessions. The upload
@@ -65,8 +71,10 @@ Endpoints: `POST /v1/documents/upload`, `POST /v1/documents/analyze` (also
 provider/model names and key availability without exposing credentials. Local
 document sessions are process-memory scoped: use one API worker, or add shared
 encrypted storage and user authentication before running a multi-worker or
-multi-user production deployment. Scanned/image-only PDFs need OCR and are not
-currently text-extracted. Use HTTPS in deployment. PII detection is best-effort
+multi-user production deployment. The bundled OCR recognition model is optimized
+for printed English/Chinese and may not recognize Hindi or Kannada script; OCR
+quality depends on scan clarity, so review the extracted text and PII findings.
+Use HTTPS in deployment. PII detection is best-effort
 and does not guarantee complete anonymization.
 
 ## Supabase audit storage

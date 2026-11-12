@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 import httpx
 from docx import Document
+from PIL import Image, ImageDraw, ImageFont
 
 from gateway.audit import AuditLog, LEGACY_COLUMNS, hash_record
 from gateway.detector import Detector, Entity
@@ -48,20 +49,52 @@ def make_docx() -> bytes:
     return buffer.getvalue()
 
 
+def make_image(text: str = "Name: Rahul Sharma. Phone: 9876543210.") -> bytes:
+    image = Image.new("RGB", (1000, 180), "white")
+    ImageDraw.Draw(image).text((20, 40), text, fill="black", font=ImageFont.load_default())
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 class DocumentExtractionTests(unittest.TestCase):
     def test_extracts_supported_formats(self):
         self.assertIn("Rahul Sharma", extract_document("note.txt", b"My name is Rahul Sharma."))
         self.assertIn("Rahul Sharma", extract_document("note.docx", make_docx()))
-        self.assertIn("Rahul Sharma", extract_document("note.pdf", make_pdf()))
+        pdf_text = extract_document("note.pdf", make_pdf())
+        self.assertIn("Rahul", pdf_text)
+        self.assertIn("Sharma", pdf_text)
 
     def test_rejects_bad_formats_corrupt_files_and_oversize_uploads(self):
         with self.assertRaisesRegex(DocumentError, "Unsupported"):
-            extract_document("photo.png", b"not a document")
+            extract_document("photo.gif", b"not a document")
         with self.assertRaisesRegex(DocumentError, "corrupted"):
             extract_document("broken.pdf", b"%PDF- broken")
         with patch("gateway.config.MAX_UPLOAD_BYTES", 4):
             with self.assertRaisesRegex(DocumentError, "maximum"):
                 extract_document("large.txt", b"12345")
+
+    def test_extracts_image_text_with_local_ocr(self):
+        image_bytes = make_image()
+        with patch("gateway.documents._get_ocr_engine") as get_engine:
+            get_engine.return_value.return_value = (
+                [([[0, 0], [200, 0], [200, 30], [0, 30]], "Name: Rahul Sharma. Phone: 9876543210.", 0.99)],
+                [],
+            )
+            text = extract_document("kyc.png", image_bytes)
+        self.assertIn("Rahul Sharma", text)
+        self.assertIn("9876543210", text)
+
+    def test_scanned_pdf_uses_ocr_for_pages_without_extractable_text(self):
+        scanned_pdf = make_pdf().replace(
+            b"My name is Rahul Sharma", b" " * len(b"My name is Rahul Sharma")
+        )
+        with patch("gateway.documents._ocr_pdf_page", return_value="Name: Rahul Sharma."):
+            self.assertIn("Rahul Sharma", extract_document("scan.pdf", scanned_pdf))
+
+    def test_corrupted_image_is_rejected(self):
+        with self.assertRaisesRegex(DocumentError, "invalid or corrupted"):
+            extract_document("photo.png", b"\x89PNG\r\n\x1a\nnot-an-image")
 
     def test_hashed_index_matches_owner_to_account_field(self):
         text = (
@@ -159,6 +192,53 @@ class AuditUpgradeTests(unittest.TestCase):
 
 
 class DocumentApiTests(unittest.TestCase):
+    def test_uploaded_image_ocr_text_flows_through_pii_analysis(self):
+        async def run():
+            from gateway import api as api_module
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                test_gateway = build_default_gateway(
+                    provider="mock",
+                    fallback="none",
+                    db_path=os.path.join(temp_dir, "audit.db"),
+                    detector=Detector(use_presidio=False),
+                )
+                store = DocumentStore()
+                self.addCleanup(store.close)
+                ocr_result = (
+                    [
+                        ([[0, 0], [200, 0], [200, 30], [0, 30]], "Name: Rahul Sharma. PAN: ABCDE1234F.", 0.99),
+                    ],
+                    [],
+                )
+                transport = httpx.ASGITransport(app=api_module.app)
+                with patch.object(api_module, "gateway", test_gateway), \
+                        patch.object(api_module, "documents", store), \
+                        patch("gateway.documents._get_ocr_engine") as get_engine:
+                    get_engine.return_value.return_value = ocr_result
+                    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                        uploaded = await client.post(
+                            "/v1/documents/upload",
+                            files={"file": ("kyc.png", make_image(), "image/png")},
+                        )
+                        self.assertEqual(uploaded.status_code, 200, uploaded.text)
+                        document = uploaded.json()
+                        self.assertIn("Rahul Sharma", document["extracted_text"])
+                        response = await client.post(
+                            "/v1/documents/analyze",
+                            headers={"Authorization": f"Bearer {document['access_token']}"},
+                            json={"document_id": document["document_id"]},
+                        )
+                        self.assertEqual(response.status_code, 200, response.text)
+                        analysis = response.json()
+                        self.assertNotIn("Rahul", analysis["sanitized_text"])
+                        self.assertNotIn("ABCDE1234F", analysis["sanitized_text"])
+                        found = {(entity["label"], entity["value"]) for entity in analysis["entities"]}
+                        self.assertIn(("PERSON", "Rahul Sharma"), found)
+                        self.assertIn(("PAN", "ABCDE1234F"), found)
+
+        asyncio.run(run())
+
     def test_analysis_table_only_contains_original_text_offsets(self):
         async def run():
             from gateway import api as api_module

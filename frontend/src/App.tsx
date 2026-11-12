@@ -334,8 +334,8 @@ function App() {
     if (!file || uploading || busy) return;
     const extension = file.name.split(".").pop()?.toLowerCase();
     const maxBytes = health?.max_upload_bytes ?? 10 * 1024 * 1024;
-    if (!["pdf", "docx", "txt"].includes(extension ?? "")) {
-      notify("Unsupported file. Choose a PDF, DOCX, or TXT document.");
+    if (!["pdf", "docx", "txt", "png", "jpg", "jpeg", "tif", "tiff", "bmp", "webp"].includes(extension ?? "")) {
+      notify("Unsupported file. Choose a PDF, DOCX, TXT, or supported image.");
       return;
     }
     if (file.size > maxBytes) {
@@ -555,9 +555,9 @@ function App() {
             onDragLeave={() => setDraggingFile(false)}
             onDrop={(event) => { event.preventDefault(); setDraggingFile(false); void uploadFile(event.dataTransfer.files[0]); }}
           >
-            <input ref={uploadRef} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onChange={(event) => void uploadFile(event.target.files?.[0])} hidden />
+            <input ref={uploadRef} type="file" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/*" onChange={(event) => void uploadFile(event.target.files?.[0])} hidden />
             <span className="upload-icon"><CloudUpload size={23} /></span>
-            <div className="drop-copy"><strong>{uploading ? "Uploading and extracting…" : "Drop a PDF, DOCX, or TXT file here"}</strong><span>Maximum {formatBytes(health?.max_upload_bytes ?? 10 * 1024 * 1024)} · text is extracted locally by the gateway</span></div>
+            <div className="drop-copy"><strong>{uploading ? "Uploading and extracting…" : "Drop a PDF, DOCX, TXT, or image here"}</strong><span>Maximum {formatBytes(health?.max_upload_bytes ?? 10 * 1024 * 1024)} · extraction and OCR run locally in the gateway</span></div>
             <button className="outline-button" type="button" onClick={() => uploadRef.current?.click()} disabled={uploading}>Browse files</button>
           </div>
           {uploading && <div className="upload-progress" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
@@ -568,7 +568,7 @@ function App() {
             <span><strong>{uploadedDocument.file_name}</strong><small>{formatBytes(uploadedDocument.size_bytes)} · expires in {Math.ceil(uploadedDocument.expires_in_seconds / 60)} min</small></span>
             <button className="icon-button" onClick={clearUploadedDocument} aria-label="Clear uploaded document"><X size={15} /></button>
           </div>}
-          <div className="upload-support">Supported formats: PDF · DOCX · TXT <span>Files are not written to disk or included in audit logs.</span></div>
+          <div className="upload-support">Supported: PDF · DOCX · TXT · PNG · JPEG · TIFF · BMP · WebP <span>Scanned PDFs and images are OCR-processed locally; files are not written to disk or included in audit logs.</span></div>
           <div className="language-support">Multilingual name + phone rules: English · Hindi · Kannada · Hinglish · Kannada-English</div>
         </section>
 

@@ -17,6 +17,12 @@ from typing import Dict, Optional, Tuple
 
 from . import config
 
+_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}
+_OCR_ENGINE = None
+_OCR_ENGINE_LOCK = threading.Lock()
+_OCR_RUN_LOCK = threading.Lock()
+_OCR_PAGE_TEXT_THRESHOLD = 30
+
 _WORD = re.compile(r"[a-z0-9]+")
 _BANK_ACCOUNT_QUESTION = re.compile(
     r"\b(?:bank\s+)?account(?:\s+(?:number|no\.?))?\b", re.IGNORECASE
@@ -55,6 +61,74 @@ class DocumentError(ValueError):
     def __init__(self, message: str, status_code: int = 422):
         super().__init__(message)
         self.status_code = status_code
+
+
+def _get_ocr_engine():
+    global _OCR_ENGINE
+    with _OCR_ENGINE_LOCK:
+        if _OCR_ENGINE is None:
+            try:
+                from rapidocr_onnxruntime import RapidOCR
+                _OCR_ENGINE = RapidOCR()
+            except Exception as exc:
+                raise DocumentError(
+                    "Local OCR is unavailable. Install the OCR dependencies from requirements.txt and retry.",
+                    503,
+                ) from exc
+        return _OCR_ENGINE
+
+
+def _ocr_image(image) -> str:
+    try:
+        import numpy as np
+        from PIL import Image, ImageOps
+
+        with Image.open(image) as opened:
+            opened.verify()
+        if hasattr(image, "seek"):
+            image.seek(0)
+        with Image.open(image) as opened:
+            opened = ImageOps.exif_transpose(opened)
+            if opened.width * opened.height > config.OCR_MAX_IMAGE_PIXELS:
+                raise DocumentError("Image dimensions exceed the configured OCR limit.", 413)
+            rgb_image = opened.convert("RGB")
+            pixels = np.asarray(rgb_image)
+    except DocumentError:
+        raise
+    except Exception as exc:
+        raise DocumentError("The uploaded image is invalid or corrupted.") from exc
+
+    try:
+        engine = _get_ocr_engine()
+        with _OCR_RUN_LOCK:
+            result, _ = engine(pixels)
+        if result is None:
+            return ""
+        return "\n".join(
+            str(line[1]).strip()
+            for line in result
+            if len(line) > 1 and str(line[1]).strip()
+        )
+    except DocumentError:
+        raise
+    except Exception as exc:
+        raise DocumentError("Local OCR could not read this image. Try a clearer, higher-resolution scan.") from exc
+
+
+def _ocr_pdf_page(page) -> str:
+    try:
+        import pymupdf
+
+        scale = min(2.0, 4000 / max(page.rect.width, page.rect.height))
+        pixmap = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
+        if pixmap.width * pixmap.height > config.OCR_MAX_IMAGE_PIXELS:
+            raise DocumentError("PDF page dimensions exceed the configured OCR limit.", 413)
+        image_bytes = pixmap.tobytes("png")
+        return _ocr_image(io.BytesIO(image_bytes))
+    except DocumentError:
+        raise
+    except Exception as exc:
+        raise DocumentError("The scanned PDF page could not be rendered for local OCR.") from exc
 
 
 @dataclass(frozen=True)
@@ -200,8 +274,8 @@ class StoredDocument:
 def extract_document(filename: str, content: bytes) -> str:
     filename = filename.replace("\\", "/").rsplit("/", 1)[-1]
     suffix = Path(filename).suffix.lower()
-    if suffix not in {".pdf", ".docx", ".txt"}:
-        raise DocumentError("Unsupported file type. Upload a PDF, DOCX, or TXT file.", 415)
+    if suffix not in {".pdf", ".docx", ".txt"} | _IMAGE_SUFFIXES:
+        raise DocumentError("Unsupported file type. Upload a PDF, DOCX, TXT, or image file.", 415)
     if not content:
         raise DocumentError("The uploaded file is empty.")
     if len(content) > config.MAX_UPLOAD_BYTES:
@@ -225,15 +299,41 @@ def extract_document(filename: str, content: bytes) -> str:
                 raise DocumentError("Password-protected PDF files are not supported.")
             if len(reader.pages) > config.MAX_DOCUMENT_PAGES:
                 raise DocumentError("PDF exceeds the configured page limit.", 413)
-            parts = []
-            total_chars = 0
-            for page in reader.pages:
-                part = page.extract_text() or ""
-                total_chars += len(part)
-                if total_chars > config.MAX_DOCUMENT_CHARS:
-                    raise DocumentError("Extracted text exceeds the configured document limit.", 413)
-                parts.append(part)
-            text = "\n".join(parts)
+            pdf_document = None
+            try:
+                parts = []
+                total_chars = 0
+                ocr_pages = 0
+                for page_number, page in enumerate(reader.pages):
+                    part = page.extract_text() or ""
+                    if len(part.strip()) < _OCR_PAGE_TEXT_THRESHOLD:
+                        ocr_pages += 1
+                        if ocr_pages > config.OCR_MAX_PAGES:
+                            raise DocumentError("Scanned PDF exceeds the configured OCR page limit.", 413)
+                        if pdf_document is None:
+                            try:
+                                import pymupdf
+                                pdf_document = pymupdf.open(stream=content, filetype="pdf")
+                            except ImportError as exc:
+                                raise DocumentError(
+                                    "Scanned PDF support is unavailable. Install the project requirements.",
+                                    503,
+                                ) from exc
+                            except Exception as exc:
+                                raise DocumentError("The PDF could not be rendered for OCR.") from exc
+                        ocr_text = _ocr_pdf_page(pdf_document.load_page(page_number))
+                        if ocr_text:
+                            part = ocr_text
+                    total_chars += len(part)
+                    if total_chars > config.MAX_DOCUMENT_CHARS:
+                        raise DocumentError("Extracted text exceeds the configured document limit.", 413)
+                    parts.append(part)
+                text = "\n".join(parts)
+            finally:
+                if pdf_document is not None:
+                    pdf_document.close()
+        elif suffix in _IMAGE_SUFFIXES:
+            text = _ocr_image(io.BytesIO(content))
         else:
             if not content.startswith(b"PK"):
                 raise DocumentError("The DOCX file is invalid or corrupted.")
