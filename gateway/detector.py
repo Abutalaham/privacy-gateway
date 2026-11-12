@@ -18,6 +18,7 @@ from . import config
 from .ner_rules import STOP, find_addresses, find_names
 from .recognizers import (
     ENTITY_TO_LABEL, LABEL_CONTEXT, NEGATIVE_CONTEXT, SPECS, find_bank_accounts, find_ip_addresses,
+    normalize_indic_digits,
 )
 
 log = logging.getLogger("privacy_gateway.detector")
@@ -161,16 +162,18 @@ class Detector:
                 log.warning("Presidio engine unavailable (%s) - using built-in fallback engine", exc)
 
     def _raw(self, text: str):
+        # Digit conversion is one-for-one, so recognizer offsets still point into original text.
+        normalized_text = normalize_indic_digits(text)
         if self.analyzer is not None:
             out = []
-            for r in self.analyzer.analyze(text=text, language="en", score_threshold=config.SCORE_THRESHOLD):
+            for r in self.analyzer.analyze(text=normalized_text, language="en", score_threshold=config.SCORE_THRESHOLD):
                 label = ENTITY_TO_LABEL.get(r.entity_type)
                 if not label:
                     continue
                 src = (r.recognition_metadata or {}).get("recognizer_name", "presidio") if r.recognition_metadata else "presidio"
                 out.append((label, r.start, r.end, float(r.score), str(src)))
             return out
-        return [r for r in _fallback_analyze(text, self.gliner) if r[3] >= config.SCORE_THRESHOLD]
+        return [r for r in _fallback_analyze(normalized_text, self.gliner) if r[3] >= config.SCORE_THRESHOLD]
 
     def detect(self, text: str) -> List[Entity]:
         cands = []

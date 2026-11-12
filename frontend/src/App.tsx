@@ -569,6 +569,7 @@ function App() {
             <button className="icon-button" onClick={clearUploadedDocument} aria-label="Clear uploaded document"><X size={15} /></button>
           </div>}
           <div className="upload-support">Supported formats: PDF · DOCX · TXT <span>Files are not written to disk or included in audit logs.</span></div>
+          <div className="language-support">Multilingual name + phone rules: English · Hindi · Kannada · Hinglish · Kannada-English</div>
         </section>
 
         {documentAnalysis && !result && <section className="document-review">

@@ -22,9 +22,14 @@ class IdSpec:
 
 
 _BANK_ACCOUNT_CONTEXT = re.compile(
-    r"\b(?:bank\s+account|account\s+(?:number|no\.?)|a/c\s*(?:number|no\.?)?|iban)\b", re.I
+    r"\b(?:bank\s+account|account\s+(?:number|no\.?)|a/c\s*(?:number|no\.?)?|iban)\b|"
+    r"(?:ಖಾತೆ\s*(?:ಸಂಖ್ಯೆ|ನಂಬರ್)|बैंक\s*खाता|खाता\s*(?:संख्या|नंबर))", re.I
 )
 _ACCOUNT_NUMBER = re.compile(r"(?<!\d)\d{9,18}(?!\d)")
+_INDIC_DIGIT_TRANSLATION = str.maketrans(
+    "०१२३४५६७८९೦೧೨೩೪೫೬೭೮೯",
+    "01234567890123456789",
+)
 _IP_CANDIDATE = re.compile(
     r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?!(?:\.\d)|\w)|"
     r"(?<![\w:])(?:[A-F0-9]{1,4}:){2,7}[A-F0-9]{0,4}(?![\w:])",
@@ -40,6 +45,11 @@ def find_bank_accounts(text: str):
         if _BANK_ACCOUNT_CONTEXT.search(prefix):
             out.append(("BANK_ACCOUNT", match.start(), match.end(), 0.9))
     return out
+
+
+def normalize_indic_digits(text: str) -> str:
+    """Convert Devanagari and Kannada digits one-for-one, preserving every span offset."""
+    return text.translate(_INDIC_DIGIT_TRANSLATION)
 
 
 def find_ip_addresses(text: str):
@@ -103,7 +113,8 @@ SPECS: List[IdSpec] = [
            ["passport", "travel document"], None),
     IdSpec("IN_PHONE", "PHONE",
            [("in_mobile", r"(?<![\w-])(?:\+91[\s-]?|91[\s-]|0)?[6-9]\d{4}[\s-]?\d{5}(?!\d)", 0.5)],
-           ["phone", "mobile", "mob", "contact", "call", "whatsapp", "cell"], None),
+           ["phone", "mobile", "mob", "contact", "call", "whatsapp", "cell",
+            "फ़ोन", "फोन", "मोबाइल", "संपर्क", "ದೂರವಾಣಿ", "ಫೋನ್", "ಮೊಬೈಲ್", "ಸಂಪರ್ಕ"], None),
     IdSpec("EMAIL_ADDRESS", "EMAIL",
            [("email", r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b", 0.9)],
            ["email", "e-mail", "mail"], None),

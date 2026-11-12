@@ -101,9 +101,9 @@ project never crashes on a machine without Presidio - **for judging, make sure i
 |---|---|
 | `gateway/recognizers.py` | One spec list (regex, base score, context words, checksum validator) feeding Presidio `PatternRecognizer`s |
 | `gateway/checksums.py` | Verhoeff (Aadhaar) and mod-36 (GSTIN) |
+| `gateway/ner_rules.py` | Name/address rules, including Hindi and Kannada name cues alongside English, Hinglish, and Kanglish |
+| `gateway/detector.py` | Presidio and fallback detection; normalizes Devanagari/Kannada digits one-for-one so reported spans stay in the original text |
 | `gateway/documents.py` | Bounded PDF/DOCX/TXT extraction and expiring in-memory document sessions |
-| `gateway/ner_rules.py` | Names/addresses: cue words (`name is`, `mera naam`, `nanna hesaru`, `S/o`, `Mr.`), `ji/garu` suffixes, gazetteer, PIN-code address patterns |
-| `gateway/detector.py` | Builds the Presidio `AnalyzerEngine` (India recognizers + rules + spaCy + optional GLiNER), negative-context filter (`UTR`, `Policy`), overlap resolution |
 | `gateway/masking.py` | `Vault`: consistent placeholders, safe surname aliasing, FPE tokens, residual re-scan, final leak gate |
 | `gateway/reinsert.py` | Restores values by exact `(label, number)`; tolerant of `[PERSON_1]`, `person_1`, `PERSON\_1`; leaves unknown placeholders alone |
 | `gateway/llm.py` | Pluggable backends (Anthropic, OpenAI-compatible, Ollama, local extractive, mock) and `LLMRouter` with automatic fallback |
@@ -127,7 +127,7 @@ project never crashes on a machine without Presidio - **for judging, make sure i
 
 ## Honest limitations (read before the demo)
 * Numbers in `reports/metrics.md` shipped with this repo were produced by the **built-in regex engine on a synthetic set that the rules were tuned against**. Treat them as a smoke test, not as generalisation. Re-run with Presidio + GLiNER and, ideally, a hold-out set that none of you has looked at.
-* Names in free text without a cue word and not in the small gazetteer rely on spaCy/GLiNER. Devanagari/Kannada-script names are not covered by the rules (GLiNER multilingual helps).
+* Hindi and Kannada names are rule-detected when they follow supported name cues; uncued names in those scripts rely on optional GLiNER and may be missed. Statistical spaCy NER is English-based. Hindi/Kannada digits are normalized for detection without changing original offsets.
 * Address detection is strongest when there is a cue (`Address:`) or a 6-digit PIN; a PIN-less address with abbreviations like "St." can be truncated.
 * Anything the detector never sees (an undetected value) cannot be caught by the leak gate - the gate only knows values the vault holds. That is why recall matters most.
 * Format-preserving tokens are random same-shape strings (not NIST FF1). They keep field shape but are not cryptographic FPE.

@@ -51,6 +51,36 @@ class Detection(unittest.TestCase):
         self.assertIn("Suresh Gowda", names)
         self.assertIn("Chaitra Hegde", names)
 
+    def test_hindi_and_kannada_mixed_text_names_and_native_digit_phones(self):
+        examples = (
+            ("ಗ್ರಾಹಕ ಬೆಂಬಲ: ನನ್ನ ಹೆಸರು ರಮೇಶ್ ಗೌಡ. ನನ್ನ phone number +೯೧ ೯೮೭೬೫ ೪೩೨೧೦.",
+             "ರಮೇಶ್ ಗೌಡ", "+೯೧ ೯೮೭೬೫ ೪೩೨೧೦"),
+            ("ग्राहक सहायता: मेरा नाम आरव मेहता है। मेरा phone number ९८७६५४३२१० है।",
+             "आरव मेहता", "९८७६५४३२१०"),
+            ("Customer name: ರಮೇಶ್ ಗೌಡ, call +91 98765 43210.",
+             "ರಮೇಶ್ ಗೌಡ", "+91 98765 43210"),
+        )
+        fallback_detector = Detector(use_presidio=False)
+        for text, expected_name, expected_phone in examples:
+            with self.subTest(text=text):
+                entities = DET.detect(text)
+                found = {(entity.label, entity.text) for entity in entities}
+                self.assertIn(("PERSON", expected_name), found)
+                self.assertIn(("PHONE", expected_phone), found)
+                fallback_found = {
+                    (entity.label, entity.text) for entity in fallback_detector.detect(text)
+                }
+                self.assertIn(("PERSON", expected_name), fallback_found)
+                self.assertIn(("PHONE", expected_phone), fallback_found)
+                for entity in entities:
+                    self.assertEqual(text[entity.start:entity.end], entity.text)
+
+                result = gw().process(text)
+                self.assertNotIn(expected_name, result.outbound_payload)
+                self.assertNotIn(expected_phone, result.outbound_payload)
+                self.assertIn("<PERSON_1>", result.sanitized_text)
+                self.assertIn("<PHONE_1>", result.sanitized_text)
+
     def test_address_with_pin(self):
         t = "Address: No. 12, 4th Cross, Jayanagar, Bengaluru - 560011 and then more text."
         self.assertTrue(any(e.label == "ADDRESS" and e.text.endswith("560011") for e in DET.detect(t)))

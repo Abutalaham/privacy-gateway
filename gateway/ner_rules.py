@@ -24,18 +24,21 @@ Place Application Form Record Proprietor Director Owner Guarantor Father Mother 
 Later Then Also After Before Today Yesterday Tomorrow Hence However Thus Finally Meanwhile Call Reach Send Check See Refer Attn Kindly
 UTR Incident Relation Limited Ltd Pvt Private Urgent Issue Problem Update Status Help Need Unable Not
 Summarize Summary Explain Tell Analyze Analyse Write Extract Describe Provide Find What Who Why How""".split()}
+STOP.update(w.lower() for w in """मेरा मेरी नाम है ग्राहक ग्राहकों सहायता और का की के को ने से फोन मोबाइल
+ನನ್ನ ನನ್ನದು ಹೆಸರು ಗ್ರಾಹಕ ಗ್ರಾಹಕರ ಬೆಂಬಲ ಮತ್ತು ಅವರ ಅವರು ಇದೆ ಇದ್ದಾರೆ ಗೆ ನಿಂದ ಸಂಪರ್ಕ ಕರೆ ಮೊಬೈಲ್ ಫೋನ್""".split())
 STOP.update(w.lower() for w in """Case Dossier Support Financial Profile Report Reference Master Core Privacy Gateway
 Demo Test Synthetic Data Person Persons Names Placeholder Consistency Processing Prompt Target Karnataka Holder Sole
 Signatory Verification Details Web Portal Client Repeated Sections""".split())
 
-_TOK = r"(?:[A-Z][a-z]{1,20}|[A-Z]{2,20}|[A-Z]\.)"
+_TOK = r"(?:[A-Z][a-z]{1,20}|[A-Z]{2,20}|[A-Z]\.|[\u0900-\u097F]+|[\u0C80-\u0CFF]+)"
 _NAME = rf"({_TOK}(?:(?:[ \t]+|\n){_TOK}){{0,3}})"
 _STRONG = (r"(?:my\s+name\s+is|name\s+is|name\s*[:=\-–]|full(?:\s+legal)?\s+name|applicant(?:'s)?(?:\s+name)?|co-?applicant|"
            r"customer(?:'s)?[ \t]+name|customer(?=[ \t]*[:=])|claimant(?:\s*\([^)\n]{0,30}\))?|"
            r"policy\s*holder|borrower|nominee|beneficiary|"
            r"account\s+holder|proprietor|director|owner|guarantor|authori[sz]ed\s+signatory|father'?s?\s+name|"
            r"mother'?s?\s+name|spouse(?:'s)?\s+name|contact\s+person|mera\s+naam|mera\s+name|meri\s+naam|naam|"
-           r"nanna\s+hesaru|hesaru|s/o|d/o|w/o|c/o|mr\.?|mrs\.?|ms\.?|shri|smt\.?|sri|dr\.?|prof\.?)")
+           r"nanna\s+hesaru|hesaru|मेरा\s+नाम(?:\s+है)?|ग्राहक(?:\s+का)?\s+नाम|नाम|"
+           r"ನನ್ನ\s+ಹೆಸರು|ಗ್ರಾಹಕರ\s+ಹೆಸರು|ಹೆಸರು|s/o|d/o|w/o|c/o|mr\.?|mrs\.?|ms\.?|shri|smt\.?|sri|dr\.?|prof\.?)")
 _WEAK = r"(?:i\s+am|i\s*,|dear|regards,?|thanks,?|sincerely,?|yours\s+truly,?|verified\s+by|branch\s+manager)"
 
 STRONG_RE = re.compile(rf"\b(?i:{_STRONG})[ \t]*[:=\-–]?\s*{_NAME}")
@@ -49,7 +52,7 @@ def _trim(text: str, start: int, end: int):
     toks = [(m.group(), m.start() + start, m.end() + start) for m in re.finditer(r"\S+", text[start:end])]
     kept, started = [], False
     for tok, s, e in toks:
-        is_stop = tok.strip(".,:;").lower() in STOP
+        is_stop = tok.strip(".,:;!?।,").lower() in STOP
         if not started and is_stop:
             continue
         if started and is_stop:
