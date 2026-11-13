@@ -42,8 +42,10 @@ images. The FastAPI service extracts embedded PDF text and runs local OCR on
 image uploads and PDF pages without extractable text. OCR output enters the same
 PII analysis, sanitized preview, and masking workflow as other extracted text;
 the original image/PDF is never sent to an AI provider. OCR models run locally
-and do not call an external OCR service. Install the project requirements to
-enable OCR. Uploads are limited by
+and do not call an external OCR service. In the dashboard, users can also focus
+the **Original input** field and press Ctrl+V to upload a supported image from
+the clipboard. DOCX extraction includes paragraphs, table rows, headers, and
+footers. Install the project requirements to enable OCR. Uploads are limited by
 `PG_MAX_UPLOAD_BYTES` (10 MiB by default) and extracted text by
 `PG_MAX_DOCUMENT_CHARS` (1,000,000 characters by default); PDF pages are capped
 by `PG_MAX_DOCUMENT_PAGES` (500 by default). OCR is capped at

@@ -43,7 +43,11 @@ def make_pdf() -> bytes:
 
 def make_docx() -> bytes:
     document = Document()
-    document.add_paragraph("My name is Rahul Sharma.")
+    document.add_paragraph("Account Holder: Aarav Mehta")
+    table = document.add_table(rows=1, cols=2)
+    table.cell(0, 0).text = "Bank Account Number"
+    table.cell(0, 1).text = "000123456789"
+    document.sections[0].header.paragraphs[0].text = "Email: aarav@example.com"
     buffer = io.BytesIO()
     document.save(buffer)
     return buffer.getvalue()
@@ -60,7 +64,10 @@ def make_image(text: str = "Name: Rahul Sharma. Phone: 9876543210.") -> bytes:
 class DocumentExtractionTests(unittest.TestCase):
     def test_extracts_supported_formats(self):
         self.assertIn("Rahul Sharma", extract_document("note.txt", b"My name is Rahul Sharma."))
-        self.assertIn("Rahul Sharma", extract_document("note.docx", make_docx()))
+        docx_text = extract_document("note.docx", make_docx())
+        self.assertIn("Aarav Mehta", docx_text)
+        self.assertIn("000123456789", docx_text)
+        self.assertIn("aarav@example.com", docx_text)
         pdf_text = extract_document("note.pdf", make_pdf())
         self.assertIn("Rahul", pdf_text)
         self.assertIn("Sharma", pdf_text)
@@ -192,6 +199,42 @@ class AuditUpgradeTests(unittest.TestCase):
 
 
 class DocumentApiTests(unittest.TestCase):
+    def test_docx_upload_extracts_text_and_analyzes_pii(self):
+        async def run():
+            from gateway import api as api_module
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                test_gateway = build_default_gateway(
+                    provider="mock",
+                    fallback="none",
+                    db_path=os.path.join(temp_dir, "audit.db"),
+                    detector=Detector(use_presidio=False),
+                )
+                store = DocumentStore()
+                self.addCleanup(store.close)
+                transport = httpx.ASGITransport(app=api_module.app)
+                with patch.object(api_module, "gateway", test_gateway), patch.object(api_module, "documents", store):
+                    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                        uploaded = await client.post(
+                            "/v1/documents/upload",
+                            files={"file": ("kyc.docx", make_docx(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")},
+                        )
+                        self.assertEqual(uploaded.status_code, 200, uploaded.text)
+                        document = uploaded.json()
+                        self.assertIn("000123456789", document["extracted_text"])
+                        response = await client.post(
+                            "/v1/documents/analyze",
+                            headers={"Authorization": f"Bearer {document['access_token']}"},
+                            json={"document_id": document["document_id"]},
+                        )
+                        self.assertEqual(response.status_code, 200, response.text)
+                        analysis = response.json()
+                        self.assertNotIn("000123456789", analysis["sanitized_text"])
+                        self.assertNotIn("aarav@example.com", analysis["sanitized_text"])
+                        self.assertIn("BANK_ACCOUNT", {entity["label"] for entity in analysis["entities"]})
+
+        asyncio.run(run())
+
     def test_uploaded_image_ocr_text_flows_through_pii_analysis(self):
         async def run():
             from gateway import api as api_module

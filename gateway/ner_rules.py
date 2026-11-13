@@ -16,7 +16,7 @@ SURN = {"Sharma", "Patel", "Gowda", "Kumar", "Singh", "Reddy", "Nair", "Iyer", "
         "Hegde", "Patil", "Shetty", "Rao", "Das", "Mehta", "Yadav"}
 
 STOP = {w.lower() for w in """The This That My Your Our Aadhaar Aadhar Pan Address Phone Mobile Email Date Age Loan Policy
-Claim Ticket Dear Sir Madam Hi Hello Namaste Regards Thanks Thank Please Kindly Name Contact Customer Applicant Account
+Birth Claim Ticket Dear Sir Madam Hi Hello Namaste Regards Thanks Thank Please Kindly Name Contact Customer Applicant Account
 Bank Branch Amount Rs INR Hai Hain Ka Ki Ke Ko Ne Se Aur Mera Meri Naam Nanna Hesaru Is Was And For With From Passport
 Voter GSTIN GST ID No Number Mr Mrs Ms Dr Shri Smt Sri Born Occupation Employer Company Income Salary Insurance Hospital
 Claimant Nominee Policyholder Borrower Subject Re KYC DOB Gender Male Female Verified By Manager Declaration Signature

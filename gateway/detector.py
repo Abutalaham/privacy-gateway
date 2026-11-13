@@ -23,6 +23,10 @@ from .recognizers import (
 
 log = logging.getLogger("privacy_gateway.detector")
 ID_LABELS = {"AADHAAR", "PAN", "GSTIN", "VOTER_ID", "PASSPORT", "PHONE"}
+_OCR_DOB_LABEL_LINE = re.compile(
+    r"^\s*(?:date\s+of\s+birth|birth\s+date|d\.?o\.?b\.?|date_of_birth)\s*[:=\-–]?\s*$",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -120,6 +124,18 @@ def _context_hit(text: str, start: int, label: str) -> bool:
     return _last_pos(_prefix(text, start), LABEL_CONTEXT.get(label, [])) >= 0
 
 
+def _date_context(text: str, start: int) -> tuple[bool, bool]:
+    if _context_hit(text, start, "DATE_OF_BIRTH"):
+        return True, False
+    line_start = text.rfind("\n", 0, start) + 1
+    if line_start == 0:
+        return False, False
+    previous_line_end = line_start - 1
+    previous_line_start = text.rfind("\n", 0, previous_line_end) + 1
+    previous_line = text[previous_line_start:previous_line_end]
+    return bool(_OCR_DOB_LABEL_LINE.fullmatch(previous_line)), True
+
+
 def _negated(text: str, start: int, label: str) -> bool:
     """True if a 'this is a txn/policy/claim number' word sits closer to the match than any identity keyword."""
     w = _prefix(text, start, 30)
@@ -187,8 +203,12 @@ class Detector:
                 s += meaningful[0].start()
                 e = s + meaningful[-1].end() - meaningful[0].start()
                 span = text[s:e]
-            if label == "DATE_OF_BIRTH" and not _context_hit(text, s, label):
-                continue
+            if label == "DATE_OF_BIRTH":
+                has_context, is_adjacent_ocr_label = _date_context(text, s)
+                if not has_context:
+                    continue
+                if is_adjacent_ocr_label:
+                    score = max(score, 0.9)
             if label in ID_LABELS and score < 0.9 and _negated(text, s, label):
                 continue                                       # e.g. "UTR 402312345678", "Policy POL1234567"
             cands.append(Entity(label, s, e, score, span, src))

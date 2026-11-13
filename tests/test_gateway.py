@@ -117,6 +117,30 @@ class Detection(unittest.TestCase):
         self.assertEqual(dates, ["14 February 2002"])
         self.assertEqual(addresses, [])
 
+    def test_ocr_table_layout_keeps_name_and_dob_context_separate(self):
+        text = (
+            "PERSON\n"
+            "Meera Nair Date of Birth\n"
+            "<PERSON 1>\n"
+            "85%\n"
+            "90-114 (original)\n"
+            "DATE_OF_BIRTH\n"
+            "14 August 2002\n"
+            "<DATE OF BIRTH 1>\n"
+            "35%\n"
+            "116-130 (original)"
+        )
+        entities = DET.detect(text)
+        people = [entity for entity in entities if entity.label == "PERSON"]
+        dates = [entity for entity in entities if entity.label == "DATE_OF_BIRTH"]
+        self.assertEqual([entity.text for entity in people], ["Meera Nair"])
+        self.assertEqual([entity.text for entity in dates], ["14 August 2002"])
+        self.assertGreaterEqual(dates[0].score, 0.9)
+        self.assertEqual(text[dates[0].start:dates[0].end], dates[0].text)
+
+        report_date = DET.detect("Report Date\n14 August 2002")
+        self.assertFalse(any(entity.label == "DATE_OF_BIRTH" for entity in report_date))
+
 
 class Masking(unittest.TestCase):
     def test_consistent_placeholders(self):

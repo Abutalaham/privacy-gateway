@@ -1,23 +1,29 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent as ReactClipboardEvent, type ReactNode } from "react";
+import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import {
   Activity, AlertTriangle, ArrowDownToLine, Check, CheckCircle2, ChevronDown, ChevronRight,
-  CircleHelp, Clipboard, Clock3, CloudUpload, Download, FileCheck2, FileText, Fingerprint,
+  CircleHelp, Clipboard, Clock3, CloudUpload, Download, FileCheck2, FileText, Fingerprint, Image as ImageIcon,
   LockKeyholeOpen, Network, RotateCw, Shield, ShieldAlert, ShieldCheck, Sparkles, X,
 } from "lucide-react";
-import {
-  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
 import { api, getApiUrl } from "./api";
 import { entityColors, fallbackPolicies, metricsFallback, samples } from "./data";
 import type {
   AuditRecord, DocumentAnalysis, Entity, GatewayError, Metrics, Policy, ProcessResult, ProviderOption, UploadedDocument,
 } from "./types";
 
+const MetricsTab = lazy(() => import("./MetricsTab"));
+
 type GatewayFailure = { kind: "blocked" | "leak" | "unavailable"; message: string; requestId?: string; labels?: string[] };
 type Span = { start: number; end: number; label: string; placeholder: string; value: string };
 type MockEntity = Entity & { value: string };
 
-const stages = ["Detect", "Mask", "Forward", "Reinsert"];
+const flowSteps = [
+  { label: "Document", icon: FileText },
+  { label: "Detection", icon: Fingerprint },
+  { label: "Masking", icon: ShieldCheck },
+  { label: "AI", icon: Network },
+  { label: "Restoration", icon: RotateCw },
+];
 
 function isGatewayError(error: unknown): error is GatewayError {
   return typeof error === "object" && error !== null && "status" in error;
@@ -80,7 +86,7 @@ function renderMarkedText(text: string, spans: Span[], active: string | null, on
 }
 
 function renderPlaceholders(text: string, spans: Span[], active: string | null, onHover: (placeholder: string | null) => void) {
-  const matches = [...text.matchAll(/<[A-Z_]+_\d+>|\[REDACTED_[A-Z_]+\]/g)];
+  const matches = [...text.matchAll(/<[A-Z_]+_\d+>|\[(?:[A-Z_]+_\d+|REDACTED_[A-Z_]+)\]/g)];
   if (!matches.length) return text;
   const nodes: ReactNode[] = [];
   let position = 0;
@@ -157,7 +163,7 @@ function makeMockResult(text: string, task: "summarize" | "extract", purpose: st
     { label: "PHONE", regex: /(?:\+91[\s-]?)?\b[6-9]\d{9}\b/g },
     { label: "EMAIL", regex: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi },
     { label: "ADDRESS", regex: /(?:Address|address)\s*:\s*[^.\n]+(?:\d{6})?/g },
-    { label: "PERSON", regex: /(?:Applicant Name|Customer name|Policy holder|name is|naam|hesaru)\s*:\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})|(?:naam|hesaru)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})/gi },
+    { label: "PERSON", regex: /(?:Applicant Name|Customer name|Policy holder|name is|naam|hesaru)[ \t]*:[ \t]*([A-Z][a-z]+(?:[ \t]+[A-Z][a-z]+){1,2})|(?:naam|hesaru)[ \t]+([A-Z][a-z]+(?:[ \t]+[A-Z][a-z]+){1,2})/gi },
   ];
   const matches: Array<{ label: string; start: number; end: number; value: string }> = [];
   patterns.forEach(({ label, regex }) => {
@@ -245,31 +251,49 @@ function App() {
   const [result, setResult] = useState<ProcessResult | null>(null);
   const [failure, setFailure] = useState<GatewayFailure | null>(null);
   const [busy, setBusy] = useState(false);
-  const [stage, setStage] = useState(-1);
   const [demoMode, setDemoMode] = useState(false);
   const [toast, setToast] = useState("");
   const [tab, setTab] = useState<"audit" | "metrics" | "policies">("audit");
   const [audit, setAudit] = useState<{ chain_valid: boolean; records: AuditRecord[] } | null>(null);
+  const [auditLoading, setAuditLoading] = useState(true);
   const [selectedAudit, setSelectedAudit] = useState<Record<string, string> | null>(null);
   const [requestOpen, setRequestOpen] = useState(false);
   const [attemptsOpen, setAttemptsOpen] = useState(false);
   const [activePlaceholder, setActivePlaceholder] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<"compare" | "original" | "sanitized">("compare");
+  const [reviewApproved, setReviewApproved] = useState(false);
   const [uploadedDocument, setUploadedDocument] = useState<UploadedDocument | null>(null);
   const [documentAnalysis, setDocumentAnalysis] = useState<DocumentAnalysis | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [draggingFile, setDraggingFile] = useState(false);
-  const stageTimer = useRef<number | null>(null);
   const toastTimer = useRef<number | null>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const imageUploadRef = useRef<HTMLInputElement>(null);
 
   const activePolicy = policies[purpose] ?? fallbackPolicies[purpose] ?? policies.default;
   const reviewEntities = useMemo(
     () => documentAnalysis?.entities.filter((entity) => entity.pass === 1) ?? [],
     [documentAnalysis],
   );
+  const reviewSpans = useMemo(
+    () => reviewEntities
+      .filter((entity) => entity.start >= 0 && entity.end <= text.length)
+      .map((entity) => ({
+        start: entity.start,
+        end: entity.end,
+        label: entity.label,
+        placeholder: entity.placeholder,
+        value: entity.value,
+      }))
+      .sort((a, b) => a.start - b.start || b.end - a.end),
+    [reviewEntities, text.length],
+  );
   const spans = useMemo(() => result ? getSpans(text, result.entities) : [], [result, text]);
+  const signalEntities = result ? spans : reviewSpans;
+  const signalAvailable = Boolean(result || documentAnalysis);
+  const privacySignal = signalAvailable ? Math.min(signalEntities.length * 10, 100) : null;
   const originalValues = useMemo(() => [...new Set(spans.map((span) => span.value))], [spans]);
   const outboundLeaks = useMemo(() => result
     ? originalValues.filter((value) => normalize(value).length >= 4 && normalize(result.outbound_payload).includes(normalize(value)))
@@ -303,9 +327,8 @@ function App() {
     }).catch(() => undefined);
     api.policies().then(setPolicies).catch(() => undefined);
     api.metrics().then(setMetrics).catch(() => undefined);
-    refreshAudit().catch(() => setAudit(null));
+    refreshAudit().catch(() => setAudit(null)).finally(() => setAuditLoading(false));
     return () => {
-      if (stageTimer.current !== null) window.clearInterval(stageTimer.current);
       if (toastTimer.current !== null) window.clearTimeout(toastTimer.current);
     };
   }, [refreshAudit]);
@@ -348,6 +371,7 @@ function App() {
     setFailure(null);
     setDocumentAnalysis(null);
     setUploadedDocument(null);
+    setReviewApproved(false);
     try {
       const uploaded = await api.uploadDocument(file, setUploadProgress);
       setUploadedDocument(uploaded);
@@ -368,7 +392,36 @@ function App() {
     } finally {
       setUploading(false);
       if (uploadRef.current) uploadRef.current.value = "";
+      if (imageUploadRef.current) imageUploadRef.current.value = "";
     }
+  }
+
+  function handleImagePaste(event: ReactClipboardEvent<HTMLTextAreaElement>) {
+    const imageItem = Array.from(event.clipboardData.items)
+      .find((item) => item.kind === "file" && item.type.startsWith("image/"));
+    if (!imageItem) return;
+
+    event.preventDefault();
+    if (uploading || busy) {
+      notify("Wait for the current request to finish before pasting an image.");
+      return;
+    }
+
+    const image = imageItem.getAsFile();
+    const extension = ({
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/tiff": "tiff",
+      "image/bmp": "bmp",
+      "image/webp": "webp",
+    } as Record<string, string>)[imageItem.type.toLowerCase()];
+    if (!image || !extension) {
+      notify("This clipboard image format is not supported. Paste PNG, JPEG, TIFF, BMP, or WebP.");
+      return;
+    }
+
+    void uploadFile(new File([image], `pasted-image-${Date.now()}.${extension}`, { type: image.type }));
   }
 
   function clearUploadedDocument() {
@@ -378,11 +431,13 @@ function App() {
     setSampleId("custom");
     setResult(null);
     setFailure(null);
+    setReviewApproved(false);
   }
 
   async function changePurpose(nextPurpose: string) {
     setPurpose(nextPurpose);
     setResult(null);
+    setReviewApproved(false);
     if (!uploadedDocument) {
       setDocumentAnalysis(null);
       return;
@@ -407,12 +462,10 @@ function App() {
   }
 
   async function runGateway() {
-    if (!text.trim() || busy) return;
+    if (!text.trim() || busy || (uploadedDocument && (!documentAnalysis || !reviewApproved))) return;
     setBusy(true);
-    setStage(0);
     setFailure(null);
     setResult(null);
-    stageTimer.current = window.setInterval(() => setStage((current) => Math.min(current + 1, 3)), 650);
     try {
       const selectedSample = samples.find((sample) => sample.id === sampleId);
       const body = {
@@ -427,7 +480,6 @@ function App() {
         : demoMode
           ? makeMockResult(text, task, purpose, body.doc_type)
           : await api.process(body);
-      setStage(3);
       setResult(next);
       await refreshAudit().catch(() => undefined);
     } catch (error) {
@@ -447,8 +499,6 @@ function App() {
         notify("Network error: could not reach the gateway. Check the API URL or turn on Demo mode.");
       }
     } finally {
-      if (stageTimer.current !== null) window.clearInterval(stageTimer.current);
-      stageTimer.current = null;
       setBusy(false);
     }
   }
@@ -469,6 +519,7 @@ function App() {
     setFailure(null);
     setUploadedDocument(null);
     setDocumentAnalysis(null);
+    setReviewApproved(false);
   }
 
   const healthBackends = health?.backends?.join(", ") || "backend offline";
@@ -479,14 +530,18 @@ function App() {
     : [];
   const leakIsPresent = result && (result.leak_check.leaks > 0 || outboundLeaks.length > 0);
   const pipelineMessage = busy
-    ? `${stages[Math.max(0, stage)]} stage in progress`
+    ? "Gateway request in progress"
     : failure
       ? "Stopped safely · nothing else was forwarded"
       : result
         ? "Request completed · response restored locally"
-        : "Ready · original data stays within the gateway";
+        : documentAnalysis
+          ? reviewApproved ? "Preview approved · ready for secure processing" : "Sanitized preview ready · approval required"
+          : "Ready · original data stays within the gateway";
+  const protectionReady = Boolean(health || demoMode);
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#" aria-label="DPDP Privacy Gateway home">
@@ -507,7 +562,7 @@ function App() {
       </header>
 
       <main className="page-content">
-        <section className="hero-panel">
+        <motion.section className="hero-panel" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
           <div className="hero-grid" aria-hidden="true" />
           <div className="hero-copy">
             <div className="hero-kicker"><span className="hero-kicker-dot" /> PRIVACY CONTROL PLANE <span className="hero-kicker-pill">4-STAGE PROTECTION</span></div>
@@ -518,7 +573,7 @@ function App() {
               <span><ShieldCheck size={14} /> Only sanitized text is forwarded</span>
             </div>
           </div>
-          <div className="hero-side">
+          <div className={`hero-side ${protectionReady ? "protection-ready" : "protection-offline"}`}>
             <div className="hero-orbit" aria-hidden="true">
               <span className="orbit-ring orbit-ring-outer" />
               <span className="orbit-ring orbit-ring-inner" />
@@ -528,14 +583,14 @@ function App() {
               <span className="hero-shield"><ShieldCheck size={34} strokeWidth={1.7} /></span>
             </div>
             <div className="hero-float-card hero-float-top"><span className="float-icon"><LockKeyholeOpen size={14} /></span><span><b>Private by design</b><small>Values restored locally</small></span></div>
-            <div className="hero-float-card hero-float-bottom"><span className="float-pulse" /><span><b>Leak gate active</b><small>Outbound payload verified</small></span></div>
+            <div className="hero-float-card hero-float-bottom"><span className={`float-pulse ${protectionReady ? "" : "pulse-inactive"}`} /><span><b>{health ? "Gateway protection ready" : demoMode ? "Local demo preview" : "Protection inactive"}</b><small>{health ? "Gateway connected" : demoMode ? "No external request" : "Connect gateway to protect"}</small></span></div>
             <label className={`demo-switch ${demoMode ? "demo-active" : ""}`}>
               <span className="switch-copy"><Sparkles size={16} /><span><b>Demo mode</b><small>Offline mock for sample/text input</small></span></span>
               <input type="checkbox" checked={demoMode} onChange={(event) => setDemoMode(event.target.checked)} aria-label="Enable Demo mode" />
               <span className="switch-track"><span /></span>
             </label>
           </div>
-        </section>
+        </motion.section>
 
         <section id="overview" className="dashboard-stats" aria-label="Recent gateway activity">
           <div><span>DOCUMENTS PROCESSED</span><strong>{dashboardStats.documents}</strong><small>within recent audit history</small></div>
@@ -555,10 +610,14 @@ function App() {
             onDragLeave={() => setDraggingFile(false)}
             onDrop={(event) => { event.preventDefault(); setDraggingFile(false); void uploadFile(event.dataTransfer.files[0]); }}
           >
-            <input ref={uploadRef} type="file" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/*" onChange={(event) => void uploadFile(event.target.files?.[0])} hidden />
+            <input ref={uploadRef} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onChange={(event) => void uploadFile(event.target.files?.[0])} hidden />
+            <input ref={imageUploadRef} type="file" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,image/*" onChange={(event) => void uploadFile(event.target.files?.[0])} hidden />
             <span className="upload-icon"><CloudUpload size={23} /></span>
-            <div className="drop-copy"><strong>{uploading ? "Uploading and extracting…" : "Drop a PDF, DOCX, TXT, or image here"}</strong><span>Maximum {formatBytes(health?.max_upload_bytes ?? 10 * 1024 * 1024)} · extraction and OCR run locally in the gateway</span></div>
-            <button className="outline-button" type="button" onClick={() => uploadRef.current?.click()} disabled={uploading}>Browse files</button>
+            <div className="drop-copy"><strong>{uploading ? "Uploading and extracting…" : "Upload a document or image"}</strong><span>Drop a PDF, DOCX, TXT, or image · OCR runs locally · maximum {formatBytes(health?.max_upload_bytes ?? 10 * 1024 * 1024)}</span></div>
+            <div className="upload-actions">
+              <button className="outline-button" type="button" onClick={() => uploadRef.current?.click()} disabled={uploading}>Browse documents</button>
+              <button className="outline-button image-upload-button" type="button" onClick={() => imageUploadRef.current?.click()} disabled={uploading}><ImageIcon size={15} /> Browse images</button>
+            </div>
           </div>
           {uploading && <div className="upload-progress" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
             <span style={{ width: `${uploadProgress}%` }} /><b>{uploadProgress}%</b>
@@ -575,13 +634,24 @@ function App() {
         {documentAnalysis && !result && <section className="document-review">
           <div className="review-heading"><div><span className="control-kicker">PRIVACY ANALYSIS</span><h2>Review extracted and sanitized text</h2></div>
             <div className="review-actions"><span className="entity-count">{reviewEntities.length} entities · {documentAnalysis.detection_engine}</span>
+              <div className="preview-switch" role="group" aria-label="Preview layout">
+                {(["compare", "original", "sanitized"] as const).map((mode) =>
+                  <button type="button" className={previewMode === mode ? "selected" : ""} onClick={() => setPreviewMode(mode)} key={mode}>
+                    {mode === "compare" ? "Compare" : mode === "original" ? "Original" : "Sanitized"}
+                  </button>)}
+              </div>
               <button className="outline-button" onClick={() => downloadText(documentAnalysis.sanitized_text, "sanitized-document.txt")}><Download size={13} /> Download sanitized</button>
             </div>
           </div>
-          <div className="review-grid">
-            <div><h3>Extracted original <small>authorized preview</small></h3><pre>{text}</pre></div>
-            <div><h3>Sanitized preview <small>only this content is sent to AI</small></h3><pre>{documentAnalysis.sanitized_text}</pre></div>
+          <div className={`review-grid preview-${previewMode}`}>
+            {previewMode !== "sanitized" && <motion.div key="original-preview" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .22 }}><h3>Extracted original <small>authorized preview · hover values to link</small></h3><pre>{renderMarkedText(text, reviewSpans, activePlaceholder, setActivePlaceholder)}</pre></motion.div>}
+            {previewMode !== "original" && <motion.div key="sanitized-preview" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .22 }}><h3>Sanitized preview <small>only this content is sent to AI · hover placeholders to link</small></h3><pre>{renderPlaceholders(documentAnalysis.sanitized_text, reviewSpans, activePlaceholder, setActivePlaceholder)}</pre></motion.div>}
           </div>
+          <label className={`review-approval ${reviewApproved ? "approved" : ""}`}>
+            <input type="checkbox" checked={reviewApproved} onChange={(event) => setReviewApproved(event.target.checked)} />
+            <span><strong>I reviewed the sanitized preview and approve this request.</strong><small>Only the sanitized text will be sent to the selected AI provider. Original values remain in the gateway.</small></span>
+            <CheckCircle2 size={19} aria-hidden="true" />
+          </label>
           <div className="entity-table-wrap review-entities"><table className="entity-table">
             <thead><tr><th>CATEGORY</th><th>ORIGINAL VALUE</th><th>PLACEHOLDER</th><th>CONFIDENCE</th><th>POSITION</th></tr></thead>
             <tbody>{reviewEntities.map((entity, index) => <tr key={`${entity.placeholder}-${entity.start}-${index}`}>
@@ -629,9 +699,11 @@ function App() {
               </select><ChevronDown size={15} /></span>
             </label>
             <div className="run-cell">
-              <button className="primary-button" onClick={() => void runGateway()} disabled={busy || uploading || !text.trim()}>
+              <button className="primary-button" onClick={() => void runGateway()} disabled={busy || uploading || !text.trim() || Boolean(uploadedDocument && (!documentAnalysis || !reviewApproved))}>
                 {busy ? <><RotateCw className="spin" size={16} /> Processing…</> : <><ShieldCheck size={17} /> Run securely <span className="button-shortcut">⌘ ↵</span></>}
               </button>
+              {uploadedDocument && !documentAnalysis && <small className="run-hint">Document analysis is required before processing.</small>}
+              {documentAnalysis && !reviewApproved && <small className="run-hint">Review and approve the sanitized preview to continue.</small>}
             </div>
             <label className="instruction-field">
               <span className="field-label">QUESTION OR INSTRUCTION</span>
@@ -640,27 +712,44 @@ function App() {
           </div>
           <div className={`pipeline-status ${busy ? "pipeline-running" : ""} ${result ? "pipeline-complete" : ""} ${failure ? "pipeline-stopped" : ""}`} role="status" aria-live="polite">
             <div className="pipeline-heading"><span><Activity size={13} /> SECURE PROCESSING FLOW</span><b>{pipelineMessage}</b></div>
-            <div className="stage-progress">
-              {stages.map((name, index) => {
-                const done = Boolean(result) || (busy && index < stage);
-                const current = busy && index === stage;
-                return <div className={`stage-item ${done ? "done" : ""} ${current ? "current" : ""}`} key={name}>
-                  <span className="stage-indicator">{done ? <Check size={12} /> : index + 1}</span>
-                  <span className="stage-name">{name}</span>
-                  {index < stages.length - 1 && <span className={`stage-connector ${done ? "done" : ""}`} />}
-                </div>;
-              })}
+            <div className={`security-flow ${busy ? "flow-busy" : ""} ${result ? "flow-complete" : ""} ${failure ? "flow-stopped" : ""}`} aria-label={`Document processing flow. ${pipelineMessage}`}>
+              <span className="flow-track" aria-hidden="true" />
+              {busy && <motion.span className="flow-packet" aria-hidden="true" animate={{ left: ["0%", "100%"] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} />}
+              <div className="flow-steps">
+                {flowSteps.map(({ label, icon: Icon }, index) => {
+                  const done = Boolean(result) || (Boolean(documentAnalysis) && index < 3) || (Boolean(text.trim()) && index === 0);
+                  return <div className={`flow-step ${done ? "done" : ""}`} key={label} aria-label={`${label}: ${done ? "complete" : "pending"}`}>
+                    <span className="flow-node">{done ? <Check size={15} /> : <Icon size={15} />}</span>
+                    <span className="flow-label">{label}</span>
+                  </div>;
+                })}
+              </div>
             </div>
+          </div>
+          <div className="workflow-insights">
+            <motion.aside className="privacy-signal" initial={{ opacity: 0, scale: .97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .3 }}>
+              <div className="signal-copy"><span className="field-label">LIVE PRIVACY RISK SIGNAL</span><small>Heuristic from the current detection result</small></div>
+              <div className={`signal-gauge ${privacySignal === null ? "signal-pending" : privacySignal > 0 ? "signal-detected" : "signal-clear"}`} role="img" aria-label={privacySignal === null ? "Privacy risk signal awaits analysis" : `Privacy risk signal ${privacySignal} out of 100 based on ${signalEntities.length} detected entities`}>
+                <svg viewBox="0 0 96 96" aria-hidden="true">
+                  <circle className="gauge-track" cx="48" cy="48" r="39" />
+                  <motion.circle className="gauge-value" cx="48" cy="48" r="39" initial={{ strokeDashoffset: 245 }} animate={{ strokeDashoffset: privacySignal === null ? 245 : 245 * (1 - privacySignal / 100) }} transition={{ duration: .8, ease: "easeOut" }} />
+                </svg>
+                <div><motion.strong key={privacySignal ?? "pending"} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>{privacySignal ?? "—"}</motion.strong><span>/100</span></div>
+              </div>
+              <div className="signal-details">              <strong>{privacySignal === null ? "Awaiting analysis" : signalEntities.length ? `${signalEntities.length} ${signalEntities.length === 1 ? "entity" : "entities"} detected` : "No entities detected"}</strong><small>{privacySignal === null ? "Upload a document or process text to calculate." : "10 heuristic points per detected entity · capped at 100."}</small><small>Not a measure of document safety or a guarantee of anonymization.</small></div>
+            </motion.aside>
           </div>
         </section>
 
-        {failure && <section className={`failure-card failure-${failure.kind}`} role="alert">
+        <AnimatePresence mode="wait">
+        {failure && <motion.section key={`failure-${failure.kind}`} className={`failure-card failure-${failure.kind}`} role="alert" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: .22 }}>
           {failure.kind === "blocked" ? <ShieldAlert size={20} /> : failure.kind === "unavailable" ? <AlertTriangle size={20} /> : <ShieldAlert size={20} />}
           <div className="failure-copy"><strong>{failure.kind === "blocked" ? "Blocked by purpose policy" : failure.kind === "leak" ? "Final leak gate stopped the request" : "Language model unavailable"}</strong>
             <span>{failure.message}</span>{failure.requestId && <small>Request ID: {failure.requestId}</small>}</div>
           {failure.kind === "unavailable" && <button className="outline-button" onClick={() => void runGateway()}><RotateCw size={14} /> Retry</button>}
           <button className="icon-button close-failure" aria-label="Dismiss error" onClick={() => setFailure(null)}><X size={16} /></button>
-        </section>}
+        </motion.section>}
+        </AnimatePresence>
 
         <section className={`columns-grid ${result ? "has-result" : ""}`}>
           <article className="data-card original-card">
@@ -672,8 +761,8 @@ function App() {
             {result ? <div className="text-panel marked-text" aria-label="Original text with detected entities">
               {renderMarkedText(text, spans, activePlaceholder, setActivePlaceholder)}
             </div> : <div className="editor-wrap">
-              <textarea ref={editorRef} value={text} onChange={(event) => { setText(event.target.value); setSampleId("custom"); setUploadedDocument(null); setDocumentAnalysis(null); setFailure(null); }} placeholder="Paste or type sensitive text here…" aria-label="Original text" />
-              <div className="editor-foot"><span><LockKeyholeOpen size={12} /> Local input · never sent directly</span><span>{text.length.toLocaleString()} chars</span></div>
+              <textarea ref={editorRef} value={text} onPaste={handleImagePaste} onChange={(event) => { setText(event.target.value); setSampleId("custom"); setUploadedDocument(null); setDocumentAnalysis(null); setReviewApproved(false); setFailure(null); }} placeholder="Paste or type sensitive text here…" aria-label="Original text" />
+              <div className="editor-foot"><span><LockKeyholeOpen size={12} /> Local input · never sent directly</span><span className="paste-image-hint" title="Focus this input and press Ctrl+V to upload a copied image"><ImageIcon size={12} /> Ctrl+V to paste image</span><span>{text.length.toLocaleString()} chars</span></div>
             </div>}
           </article>
 
@@ -742,7 +831,8 @@ function App() {
 
         {!result && !failure && <div className="empty-prompt"><CircleHelp size={15} /><span>Choose a sample document or write your own, then run it through the gateway.</span></div>}
 
-        {result && <section className={`verification-banner ${leakIsPresent ? "verification-danger" : "verification-safe"}`} aria-live="polite">
+        <AnimatePresence>
+        {result && <motion.section className={`verification-banner ${leakIsPresent ? "verification-danger" : "verification-safe"}`} aria-live="polite" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: .24 }}>
           <div className="verification-main">
             {leakIsPresent ? <ShieldAlert size={20} /> : <ShieldCheck size={20} />}
             <div><strong>{leakIsPresent ? "LEAK DETECTED" : "0 raw PII values found in outbound payload"}</strong>
@@ -753,7 +843,8 @@ function App() {
             <span className="hash-value"><b>SHA-256</b> {result.leak_check.outbound_sha256.slice(0, 16)}… <button className="copy-hash" onClick={() => void copy(result.leak_check.outbound_sha256, "Hash")} aria-label="Copy full SHA-256"><Clipboard size={13} /></button></span>
             <span><Clock3 size={13} /> gateway overhead <b>{(result.timings.gateway_overhead_ms ?? 0).toFixed(1)} ms</b></span>
           </div>
-        </section>}
+        </motion.section>}
+        </AnimatePresence>
 
         {result && <div className="detail-accordions">
           <section className={`accordion ${requestOpen ? "open" : ""}`}>
@@ -782,11 +873,11 @@ function App() {
             <button className={tab === "metrics" ? "active" : ""} onClick={() => setTab("metrics")} role="tab"><Fingerprint size={15} /> Metrics report</button>
             <button className={tab === "policies" ? "active" : ""} onClick={() => setTab("policies")} role="tab"><Shield size={15} /> Policies <span className="tab-count">{Object.keys(policies).length}</span></button>
           </div>
-          <div className="tab-content">
-            {tab === "audit" && <AuditTab audit={audit} onOpen={openAuditRow} />}
-            {tab === "metrics" && <MetricsTab metrics={metrics} data={reportTypes} />}
+          <motion.div className="tab-content" key={tab} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .18 }}>
+            {tab === "audit" && <AuditTab audit={audit} onOpen={openAuditRow} loading={auditLoading} />}
+            {tab === "metrics" && <Suspense fallback={<MetricsSkeleton />}><MetricsTab metrics={metrics} data={reportTypes} /></Suspense>}
             {tab === "policies" && <PoliciesTab policies={policies} />}
-          </div>
+          </motion.div>
         </section>
 
         <footer className="page-footer">
@@ -808,12 +899,17 @@ function App() {
         </aside>
       </div>}
 
-      {toast && <div className="toast-message" role="status"><AlertTriangle size={15} />{toast}<button onClick={() => setToast("")} aria-label="Dismiss notification"><X size={14} /></button></div>}
+      <AnimatePresence>{toast && <motion.div className="toast-message" role="status" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: .18 }}><AlertTriangle size={15} />{toast}<button onClick={() => setToast("")} aria-label="Dismiss notification"><X size={14} /></button></motion.div>}</AnimatePresence>
     </div>
+    </MotionConfig>
   );
 }
 
-function AuditTab({ audit, onOpen }: { audit: { chain_valid: boolean; records: AuditRecord[] } | null; onOpen: (requestId: string) => void }) {
+function AuditTab({ audit, onOpen, loading }: { audit: { chain_valid: boolean; records: AuditRecord[] } | null; onOpen: (requestId: string) => void; loading: boolean }) {
+  if (loading) return <div className="audit-skeleton" aria-label="Loading audit history" aria-busy="true">
+    <span className="skeleton-line skeleton-heading" />
+    {[0, 1, 2].map((row) => <span className="skeleton-line skeleton-row" key={row} />)}
+  </div>;
   return <div className="audit-panel">
     <div className="panel-title-row"><div><h3>Recent requests</h3><p>Immutable records of outbound payloads and model attempts.</p></div>
       <span className={`chain-badge ${audit?.chain_valid ? "chain-valid" : "chain-invalid"}`}>{audit?.chain_valid ? <CheckCircle2 size={14} /> : <ShieldAlert size={14} />}{audit ? (audit.chain_valid ? "Hash chain intact" : "Chain verification failed") : "Audit unavailable"}</span>
@@ -837,23 +933,11 @@ function AuditTab({ audit, onOpen }: { audit: { chain_valid: boolean; records: A
   </div>;
 }
 
-function MetricsTab({ metrics, data }: { metrics: Metrics | null; data: Array<{ name: string; precision: number; recall: number }> }) {
-  const accuracy = metrics?.reinsertion?.accuracy;
-  const accuracyPct = typeof accuracy === "number" ? (accuracy <= 1 ? accuracy * 100 : accuracy) : null;
-  return <div className="metrics-panel">
-    <div className="panel-title-row"><div><h3>Gateway performance</h3><p>Evaluation metrics from the local synthetic-document report.</p></div><span className="report-source"><span className="status-dot" /> reports/metrics.json</span></div>
-    {!metrics ? <div className="empty-tab"><CircleHelp size={18} />Metrics are unavailable. Start the API or regenerate the evaluation report.</div> : <>
-      <div className="kpi-grid">
-        <div className="kpi-card"><span>PII LEAKAGE</span><b className="kpi-green">{metrics.pii_leakage_count ?? "—"}</b><small>raw values found in outbound requests</small></div>
-        <div className="kpi-card"><span>REINSERTION ACCURACY</span><b>{accuracyPct === null ? "—" : `${accuracyPct.toFixed(1)}%`}</b><small>{metrics.reinsertion?.restored_correctly ?? 0} / {metrics.reinsertion?.total_checked ?? 0} values restored</small></div>
-        <div className="kpi-card"><span>P95 GATEWAY OVERHEAD</span><b>{metrics.latency_ms?.gateway_overhead_p95?.toFixed(2) ?? "—"}<small className="kpi-unit"> ms</small></b><small>not including model latency</small></div>
-      </div>
-      <div className="chart-card"><div className="chart-heading"><div><h4>Detection performance by entity type</h4><span>Precision and recall · percent</span></div><div className="chart-legend"><span><i className="legend-precision" /> Precision</span><span><i className="legend-recall" /> Recall</span></div></div>
-        {data.length ? <div className="chart-wrap"><ResponsiveContainer width="100%" height={280}><BarChart data={data} margin={{ top: 8, right: 12, left: -20, bottom: 4 }} barGap={4}>
-          <CartesianGrid stroke="#e8edf2" vertical={false} /><XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} interval={0} /><YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} tickFormatter={(value: number) => `${value}%`} /><Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} contentStyle={{ border: "1px solid #e6ebf0", borderRadius: 8, fontSize: 12 }} /><Bar dataKey="precision" fill="#22a77a" radius={[4, 4, 0, 0]} /><Bar dataKey="recall" fill="#8bb4ff" radius={[4, 4, 0, 0]} />
-        </BarChart></ResponsiveContainer></div> : <div className="empty-tab">Per-entity scores are not included in this report.</div>}
-      </div>
-    </>}
+function MetricsSkeleton() {
+  return <div className="metrics-skeleton" aria-label="Loading metrics report" aria-busy="true">
+    <span className="skeleton-line skeleton-heading" />
+    <div>{[0, 1, 2].map((item) => <span className="skeleton-line skeleton-kpi" key={item} />)}</div>
+    <span className="skeleton-line skeleton-chart" />
   </div>;
 }
 

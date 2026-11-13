@@ -131,6 +131,27 @@ def _ocr_pdf_page(page) -> str:
         raise DocumentError("The scanned PDF page could not be rendered for local OCR.") from exc
 
 
+def _docx_container_text(container) -> list[str]:
+    from docx.table import Table
+    from docx.text.paragraph import Paragraph
+
+    sections = []
+    for block in container.iter_inner_content():
+        if isinstance(block, Paragraph):
+            if block.text.strip():
+                sections.append(block.text)
+        elif isinstance(block, Table):
+            for row in block.rows:
+                cells = [
+                    " ".join(_docx_container_text(cell))
+                    for cell in row.cells
+                ]
+                row_text = " | ".join(cell for cell in cells if cell)
+                if row_text:
+                    sections.append(row_text)
+    return sections
+
+
 @dataclass(frozen=True)
 class EvidenceLookup:
     handled: bool
@@ -352,12 +373,14 @@ def extract_document(filename: str, content: bytes) -> str:
                 raise DocumentError("DOCX extraction support is unavailable. Install the project requirements.", 503) from exc
 
             document = Document(io.BytesIO(content))
-            sections = [paragraph.text for paragraph in document.paragraphs if paragraph.text]
-            sections.extend(
-                " | ".join(cell.text for cell in row.cells)
-                for table in document.tables
-                for row in table.rows
-            )
+            sections = _docx_container_text(document)
+            seen_parts = set()
+            for section in document.sections:
+                for part in (section.header, section.footer):
+                    part_name = str(part.part.partname)
+                    if part_name not in seen_parts:
+                        seen_parts.add(part_name)
+                        sections.extend(_docx_container_text(part))
             text = "\n".join(sections)
     except DocumentError:
         raise
